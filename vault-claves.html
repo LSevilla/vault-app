@@ -277,7 +277,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
         <button class="key k0" onclick="LP('0')">0</button><button class="key del" onclick="LDel()">⌫</button>
       </div>
       <div class="perr" id="lerr"></div>
-      <div class="phint">PIN principal por defecto: 1234</div>
+      <div class="phint" id="phint">PIN principal por defecto: 1234</div>
     </div>
 
     <!-- VIEW 2: VAULT SELECTOR -->
@@ -443,6 +443,8 @@ let lpe='';
 window.LP=function(d){if(lpe.length>=4)return;lpe+=d;lDots();if(lpe.length===4)setTimeout(()=>{if(lpe===MP){lpe='';lDots();goView('v-vaults');}else{document.getElementById('lerr').textContent='PIN incorrecto.';document.querySelectorAll('#ld .dot').forEach(x=>{x.classList.add('shake');setTimeout(()=>x.classList.remove('shake'),420);});lpe='';lDots();}},150);}
 window.LDel=function(){if(lpe.length>0){lpe=lpe.slice(0,-1);lDots();}}
 function lDots(){for(let i=0;i<4;i++)document.getElementById('ld'+i).className='dot'+(i<lpe.length?' on':'');if(lpe.length<4)document.getElementById('lerr').textContent='';}
+// Hide default PIN hint if user has already set their own PIN
+if(localStorage.getItem('vMP')){document.getElementById('phint').style.display='none';}
 
 // ── SELECT VAULT ──
 window.selVault=function(v){
@@ -450,7 +452,9 @@ window.selVault=function(v){
   document.getElementById('vbadge').textContent=vi.n;
   document.getElementById('vbadge').className='vpin-badge '+v;
   document.getElementById('vtitle').textContent='Bóveda '+vi.n;
-  document.getElementById('vsub').textContent='Ingresa el PIN de tu bóveda '+vi.n;
+  // Show default hint only if PIN hasn't been changed yet
+  const hasChanged = localStorage.getItem('vVP') && JSON.parse(localStorage.getItem('vVP'))[v] !== '5678' && JSON.parse(localStorage.getItem('vVP'))[v] !== '9012';
+  document.getElementById('vsub').textContent = hasChanged ? 'Ingresa el PIN de tu bóveda '+vi.n : 'Ingresa el PIN de tu bóveda '+vi.n+' (defecto: '+(v==='personal'?'5678':'9012')+')';
   vpe='';vDots();document.getElementById('verr').textContent='';
   if(VL[v]){document.getElementById('vpad').style.display='none';document.getElementById('vblk').style.display='block';}
   else{document.getElementById('vpad').style.display='block';document.getElementById('vblk').style.display='none';}
@@ -472,14 +476,50 @@ window.verCode=async function(){const entered=document.getElementById('rec-code'
 
 // ── NEW PIN ──
 let npe='';
-window.NP=function(d){if(npe.length>=4)return;npe+=d;nDots();if(npe.length===4){if(!npFirst){npFirst=npe;npe='';nDots();document.getElementById('np-lbl').textContent='Confirma tu nuevo PIN';}else if(npe===npFirst){VP[npVault]=npe;saveS();npe='';npFirst=null;nDots();toast('✅ PIN cambiado');CV=npVault;openVault(CV);}else{document.getElementById('nperr').textContent='PINs no coinciden.';npe='';npFirst=null;nDots();document.getElementById('np-lbl').textContent='Ingresa tu nuevo PIN';}}}
+window.NP=function(d){if(npe.length>=4)return;npe+=d;nDots();if(npe.length===4){if(!npFirst){npFirst=npe;npe='';nDots();document.getElementById('np-lbl').textContent='Confirma tu nuevo PIN';}else if(npe===npFirst){
+  const oldPin=VP[npVault];
+  VP[npVault]=npe;saveS();
+  npe='';npFirst=null;nDots();
+  // Re-encrypt existing data with new PIN
+  saveFB(npVault, npe).then(()=>{
+    toast('✅ PIN cambiado');
+    CV=npVault;
+    openVault(CV);
+  });
+}else{document.getElementById('nperr').textContent='PINs no coinciden.';npe='';npFirst=null;nDots();document.getElementById('np-lbl').textContent='Ingresa tu nuevo PIN';}}}
 window.NDel=function(){if(npe.length>0){npe=npe.slice(0,-1);nDots();}}
 function nDots(){for(let i=0;i<4;i++)document.getElementById('npd'+i).className='dot'+(i<npe.length?' on':'');if(npe.length<4)document.getElementById('nperr').textContent='';}
 
 // ── OPEN VAULT ──
-async function openVault(v){CV=v;const vi=VI[v];document.getElementById('hico').textContent=vi.i;document.getElementById('hname').textContent=vi.n;document.getElementById('hbdg').textContent=vi.n;document.getElementById('hbdg').className='hbdg '+v;setSS('sync','Cargando...');goView('v-app');if(fbUnsub)fbUnsub();fbUnsub=onValue(ref(DB,'vault/'+v),async snap=>{const data=snap.val();if(data&&data.encrypted){const d=await DEC(data.encrypted,VP[v]);if(d){VD[v]=d;try{localStorage.setItem('vc_'+v,JSON.stringify(d));}catch(e){}setSS('ok','Sincronizado ✓');renderAll();}else{VD[v]=lCache(v);setSS('ok','Datos locales');renderAll();}}else{VD[v]=lCache(v);setSS('ok',VD[v].length?'Datos locales':'Listo');renderAll();}},()=>{VD[v]=lCache(v);setSS('off','Sin conexión');renderAll();});}
+async function openVault(v){
+  CV=v;const vi=VI[v];
+  document.getElementById('hico').textContent=vi.i;
+  document.getElementById('hname').textContent=vi.n;
+  document.getElementById('hbdg').textContent=vi.n;
+  document.getElementById('hbdg').className='hbdg '+v;
+  setSS('sync','Cargando...');
+  goView('v-app');
+  if(fbUnsub)fbUnsub();
+  fbUnsub=onValue(ref(DB,'vault/'+v),async snap=>{
+    const data=snap.val();
+    if(data&&data.encrypted){
+      const d=await DEC(data.encrypted, VP[v]);
+      if(d){VD[v]=d;try{localStorage.setItem('vc_'+v,JSON.stringify(d));}catch(e){}setSS('ok','Sincronizado ✓');renderAll();}
+      else{VD[v]=lCache(v);setSS('ok','Datos locales');renderAll();}
+    }else{VD[v]=lCache(v);setSS('ok',VD[v].length?'Datos locales':'Listo');renderAll();}
+  },()=>{VD[v]=lCache(v);setSS('off','Sin conexión');renderAll();});
+}
 function lCache(v){try{const r=localStorage.getItem('vc_'+v);if(r)return JSON.parse(r);}catch(e){}return[];}
-async function saveFB(v){setSS('sync','Guardando...');try{const e=await ENC(VD[v],VP[v]);await set(ref(DB,'vault/'+v),{encrypted:e,updatedAt:Date.now()});try{localStorage.setItem('vc_'+v,JSON.stringify(VD[v]));}catch(e){}setSS('ok','Sincronizado ✓');}catch(e){setSS('off','Error al sincronizar');}}
+async function saveFB(v, pinOverride){
+  const pin = pinOverride || VP[v];
+  setSS('sync','Guardando...');
+  try{
+    const e=await ENC(VD[v], pin);
+    await set(ref(DB,'vault/'+v),{encrypted:e,updatedAt:Date.now()});
+    try{localStorage.setItem('vc_'+v,JSON.stringify(VD[v]));}catch(e){}
+    setSS('ok','Sincronizado ✓');
+  }catch(e){setSS('off','Error al sincronizar');}
+}
 window.closeVault=function(){if(fbUnsub){fbUnsub();fbUnsub=null;}CV=null;goView('v-vaults');}
 
 // ── TABS ──
@@ -519,7 +559,18 @@ document.getElementById('cok').onclick=async function(){if(!delId)return;VD[CV]=
 window.wipeV=async function(){if(confirm(`¿Borrar TODA la bóveda ${VI[CV].n}?`)){VD[CV]=[];await set(ref(DB,'vault/'+CV),null);localStorage.removeItem('vc_'+CV);renderAll();}}
 
 // ── CHANGE MAIN PIN ──
-window.chPin=async function(){const cur=document.getElementById('pc').value,nw=document.getElementById('pn').value,cf=document.getElementById('pk').value,err=document.getElementById('perr2');if(cur!==MP){err.textContent='PIN actual incorrecto.';return;}if(!/^\d{4}$/.test(nw)){err.textContent='Debe ser 4 dígitos.';return;}if(nw!==cf){err.textContent='No coinciden.';return;}MP=nw;saveS();err.textContent='';CM('m-pin');toast('✅ PIN principal cambiado.');}
+window.chPin=function(){
+  const cur=document.getElementById('pc').value,nw=document.getElementById('pn').value,cf=document.getElementById('pk').value,err=document.getElementById('perr2');
+  if(cur!==MP){err.textContent='PIN actual incorrecto.';return;}
+  if(!/^\d{4}$/.test(nw)){err.textContent='Debe ser 4 dígitos.';return;}
+  if(nw!==cf){err.textContent='No coinciden.';return;}
+  MP=nw;saveS();
+  // Hide default hint permanently
+  document.getElementById('phint').style.display='none';
+  err.textContent='';
+  CM('m-pin');
+  toast('✅ PIN principal cambiado.');
+}
 
 // ── MODALS ──
 window.OM=function(id){document.getElementById(id).className='mov on';pviz=false;}
