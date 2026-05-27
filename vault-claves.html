@@ -2,12 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Vault">
-<meta name="theme-color" content="#0a0a0f">
-<title>Vault – Gestor de Contraseñas</title>
+<title>Vault</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -16,563 +15,387 @@
   --acc:#6c63ff;--acc2:#8b85ff;--gl:rgba(108,99,255,0.25);
   --tx:#f0f0f8;--tx2:#9494aa;--tx3:#5a5a72;
   --ok:#22c68a;--wn:#f5a623;--dg:#ff4d6a;
-  --r:16px;--rs:10px;
-  --phone-w:390px;
+  --r:14px;--rs:10px;
 }
-html{height:100%;}
-body{
-  min-height:100vh;
+html,body{
+  width:100%;height:100%;
   font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
-  color:var(--tx);
   -webkit-font-smoothing:antialiased;
-  /* Mobile: full screen app */
-  background:var(--bg);
+  background:#f0f0f0;
 }
 
-/* ── MOBILE: full screen ── */
-#phone-shell{ display:none; }
-#root{
-  width:100%;
-  min-height:100vh;
+/* PHONE SHELL */
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px 0}
+#shell{
   position:relative;
-  background:var(--bg);
-  overflow:hidden;
-  display:flex;flex-direction:column;
-}
-
-/* ── DESKTOP: iPhone casing on white background ── */
-@media(min-width:500px){
-  body{
-    background:#f0f0f0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:100vh;
-    padding:32px 0;
-  }
-
-  /* Phone shell (carcasa) */
-  #phone-shell{
-    display:flex;
-    flex-direction:column;
-    position:relative;
-    width:375px;
-    flex-shrink:0;
-    /* iPhone body */
-    background:linear-gradient(160deg,#2a2a2e 0%,#1a1a1e 40%,#111114 100%);
-    border-radius:52px;
-    padding:14px;
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,0.12),
-      0 0 0 2px #0a0a0a,
-      inset 0 0 0 1px rgba(255,255,255,0.06),
-      0 30px 80px rgba(0,0,0,0.6),
-      0 8px 20px rgba(0,0,0,0.4);
-  }
-
-  /* Side buttons */
-  #phone-shell::before{
-    content:'';
-    position:absolute;
-    left:-3px; top:120px;
-    width:3px; height:36px;
-    background:#222;
-    border-radius:3px 0 0 3px;
-    box-shadow:0 50px 0 #222, 0 90px 0 #222;
-  }
-  #phone-shell::after{
-    content:'';
-    position:absolute;
-    right:-3px; top:160px;
-    width:3px; height:64px;
-    background:#222;
-    border-radius:0 3px 3px 0;
-  }
-
-  /* Notch / Dynamic Island */
-  .phone-notch{
-    width:120px; height:34px;
-    background:#000;
-    border-radius:20px;
-    margin:0 auto 10px;
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    position:relative;z-index:5;
-  }
-  .notch-camera{
-    width:12px;height:12px;
-    background:radial-gradient(circle at 40% 40%,#1a3a5c,#0a0a14);
-    border-radius:50%;
-    border:1px solid rgba(255,255,255,0.08);
-    position:relative;
-  }
-  .notch-camera::after{
-    content:'';position:absolute;
-    top:3px;left:3px;
-    width:4px;height:4px;
-    background:rgba(255,255,255,0.15);
-    border-radius:50%;
-  }
-  .notch-speaker{
-    width:52px;height:6px;
-    background:#0a0a0a;
-    border-radius:3px;
-  }
-
-  /* Screen bezel inside shell */
-  #root{
-    width:100%;
-    height:762px;
-    min-height:unset;
-    border-radius:40px;
-    overflow:hidden;
-    position:relative;
-    background:var(--bg);
-  }
-
-  /* Home indicator */
-  .phone-home{
-    height:28px;
-    display:flex;align-items:center;justify-content:center;
-    margin-top:10px;
-  }
-  .home-bar{
-    width:110px;height:5px;
-    background:rgba(255,255,255,0.22);
-    border-radius:3px;
-  }
-}
-
-/* ── SCREENS ── */
-.screen{
-  position:absolute;inset:0;
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-  padding:2rem;overflow-y:auto;
-  text-align:center;
-}
-.screen.vis{display:flex}
-
-/* LOCK */
-#s-lock{background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,0.22),var(--bg) 65%)}
-.lico{width:84px;height:84px;border-radius:22px;background:linear-gradient(135deg,#6c63ff,#9f97ff);display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:16px;box-shadow:0 0 48px rgba(108,99,255,0.45);flex-shrink:0}
-.ltit{font-size:30px;font-weight:700;margin-bottom:4px;flex-shrink:0}
-.lsub{font-size:14px;color:var(--tx2);margin-bottom:28px;flex-shrink:0}
-
-/* PIN DOTS + PAD */
-.pdots{display:flex;gap:18px;margin-bottom:28px;flex-shrink:0}
-.dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--b2);background:transparent;transition:all 0.2s}
-.dot.on{background:var(--acc);border-color:var(--acc);box-shadow:0 0 12px var(--gl)}
-.dot.sh{animation:sh 0.4s ease}
-@keyframes sh{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
-.pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px;flex-shrink:0;justify-content:center}
-.pkey{
-  width:72px;height:72px;
-  border-radius:50%;
-  background:var(--c1);border:0.5px solid var(--b2);
-  color:var(--tx);font-size:24px;font-weight:300;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
-  cursor:pointer;transition:all 0.13s;
-  -webkit-user-select:none;user-select:none;
+  width:375px;
+  background:linear-gradient(160deg,#2c2c30,#1a1a1e,#111114);
+  border-radius:52px;
+  padding:14px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.1),0 0 0 2px #050508,0 40px 80px rgba(0,0,0,0.7);
   flex-shrink:0;
 }
-.pkey sub{font-size:8px;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase}
-.pkey:hover{background:var(--c2)}
-.pkey:active{background:var(--acc);border-color:var(--acc);transform:scale(0.93)}
-.pkey.del{background:transparent;border-color:transparent;color:var(--tx2);font-size:20px}
-.pkey.zero{grid-column:2}
-.perr{color:var(--dg);font-size:13px;min-height:18px;margin-top:10px;text-align:center;flex-shrink:0}
-.phint{color:var(--tx3);font-size:11px;margin-top:14px;text-align:center;flex-shrink:0}
+/* Buttons */
+#shell::before{content:'';position:absolute;left:-3px;top:110px;width:3px;height:32px;background:#1a1a1e;border-radius:3px 0 0 3px;box-shadow:0 46px 0 #1a1a1e,0 84px 0 #1a1a1e}
+#shell::after{content:'';position:absolute;right:-3px;top:150px;width:3px;height:60px;background:#1a1a1e;border-radius:0 3px 3px 0}
+.notch{width:126px;height:36px;background:#000;border-radius:20px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;gap:10px}
+.n-bar{width:54px;height:6px;background:#111;border-radius:3px}
+.n-cam{width:12px;height:12px;background:radial-gradient(circle at 35% 35%,#1a3a5c,#050510);border-radius:50%;border:1px solid rgba(255,255,255,0.07)}
+#screen{
+  width:100%;height:760px;
+  border-radius:40px;
+  overflow:hidden;
+  position:relative;
+  background:var(--bg);
+}
+.homebar{height:28px;display:flex;align-items:center;justify-content:center;margin-top:10px}
+.homebar div{width:110px;height:5px;border-radius:3px;background:rgba(255,255,255,0.2)}
+
+/* Mobile full screen */
+@media(max-width:499px){
+  body{background:var(--bg);padding:0}
+  #shell{width:100%;background:none;border-radius:0;padding:0;box-shadow:none}
+  #shell::before,#shell::after{display:none}
+  .notch,.homebar{display:none}
+  #screen{height:100vh;height:-webkit-fill-available;border-radius:0}
+}
+
+/* VIEWS — each fills #screen */
+.view{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);padding:24px;text-align:center;overflow-y:auto;
+}
+.view.active{display:flex}
+
+/* LOCK */
+#v-lock{background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,0.2),var(--bg) 65%)}
+.lock-ico{width:82px;height:82px;border-radius:22px;background:linear-gradient(135deg,#6c63ff,#9f97ff);display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:16px;box-shadow:0 0 48px rgba(108,99,255,0.4)}
+.lock-title{font-size:28px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.lock-sub{font-size:14px;color:var(--tx2);margin-bottom:28px}
+
+/* DOTS */
+.dots{display:flex;gap:18px;margin-bottom:24px;justify-content:center}
+.dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--b2);background:transparent;transition:all .2s}
+.dot.on{background:var(--acc);border-color:var(--acc);box-shadow:0 0 12px var(--gl)}
+.dot.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* KEYPAD */
+.keypad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center}
+.key{width:72px;height:72px;border-radius:50%;background:var(--c1);border:.5px solid var(--b2);color:var(--tx);font-size:24px;font-weight:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;transition:all .14s;user-select:none;-webkit-user-select:none}
+.key sub{font-size:8px;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase}
+.key:active{background:var(--acc);border-color:var(--acc);transform:scale(.93)}
+.key.del{background:transparent;border-color:transparent;color:var(--tx2);font-size:20px}
+.key.k0{grid-column:2}
+.perr{color:var(--dg);font-size:13px;min-height:18px;margin-top:10px}
+.phint{color:var(--tx3);font-size:11px;margin-top:14px}
 
 /* VAULT SELECTOR */
-#s-vaults{background:radial-gradient(ellipse at 50% 10%,rgba(108,99,255,0.15),var(--bg) 65%);gap:0;justify-content:flex-start;padding-top:60px}
-.vs-header{text-align:center;margin-bottom:32px}
-.vs-title{font-size:22px;font-weight:700;margin-bottom:4px}
-.vs-sub{font-size:13px;color:var(--tx2)}
-.vault-cards{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px}
-.vcard{border-radius:18px;padding:20px 22px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all 0.18s;border:0.5px solid var(--b2);-webkit-user-select:none}
-.vcard:hover{transform:translateY(-1px)}
-.vcard:active{transform:scale(0.97)}
-.vcard.personal{background:linear-gradient(135deg,rgba(108,99,255,0.18),rgba(108,99,255,0.05));border-color:rgba(108,99,255,0.35)}
-.vcard.trabajo{background:linear-gradient(135deg,rgba(55,138,221,0.18),rgba(55,138,221,0.05));border-color:rgba(55,138,221,0.35)}
-.vcard-ico{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
-.vcard.personal .vcard-ico{background:rgba(108,99,255,0.22)}
-.vcard.trabajo .vcard-ico{background:rgba(55,138,221,0.22)}
-.vcard-info{flex:1}
-.vcard-name{font-size:18px;font-weight:700;margin-bottom:2px}
+#v-vaults{background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,0.12),var(--bg) 65%);gap:16px;justify-content:flex-start;padding-top:50px}
+.vs-title{font-size:20px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.vs-sub{font-size:13px;color:var(--tx2);margin-bottom:24px}
+.vcard{width:100%;max-width:310px;border-radius:18px;padding:20px;display:flex;align-items:center;gap:14px;cursor:pointer;border:.5px solid var(--b2);transition:transform .15s;user-select:none}
+.vcard:active{transform:scale(.97)}
+.vcard.personal{background:linear-gradient(135deg,rgba(108,99,255,0.18),rgba(108,99,255,0.04));border-color:rgba(108,99,255,0.35)}
+.vcard.trabajo{background:linear-gradient(135deg,rgba(55,138,221,0.18),rgba(55,138,221,0.04));border-color:rgba(55,138,221,0.35)}
+.vcard-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.vcard.personal .vcard-ico{background:rgba(108,99,255,0.2)}
+.vcard.trabajo .vcard-ico{background:rgba(55,138,221,0.2)}
+.vcard-info{flex:1;text-align:left}
+.vcard-name{font-size:17px;font-weight:700;color:var(--tx);margin-bottom:2px}
 .vcard-desc{font-size:12px;color:var(--tx2)}
-.vcard-lock{font-size:16px;color:var(--tx3)}
-.vs-logout{margin-top:20px;font-size:13px;color:var(--tx3);cursor:pointer;padding:8px 20px;border-radius:20px;border:0.5px solid var(--b1);transition:all 0.18s}
-.vs-logout:hover{border-color:var(--b2);color:var(--tx2)}
+.vs-logout{font-size:13px;color:var(--tx3);cursor:pointer;padding:8px 18px;border-radius:18px;border:.5px solid var(--b1);margin-top:8px}
 
 /* VAULT PIN */
-#s-vpin{gap:0;align-items:center;justify-content:center;padding:20px}
-.vpin-back{position:absolute;top:14px;left:14px;background:var(--c1);border:none;color:var(--tx2);width:36px;height:36px;border-radius:18px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;z-index:10}
-.vpin-back:hover{background:var(--c2)}
-.vpin-badge{padding:7px 18px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:16px;flex-shrink:0}
-.vpin-badge.personal{background:rgba(108,99,255,0.2);color:#8b85ff}
+#v-vpin{background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,0.1),var(--bg) 65%);padding-top:50px}
+.vpin-back{position:absolute;top:14px;left:14px;width:34px;height:34px;border-radius:17px;background:var(--c1);border:none;color:var(--tx2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.vpin-badge{padding:6px 16px;border-radius:18px;font-size:12px;font-weight:700;margin-bottom:12px;display:inline-block}
+.vpin-badge.personal{background:rgba(108,99,255,0.2);color:var(--acc2)}
 .vpin-badge.trabajo{background:rgba(55,138,221,0.2);color:#6aabef}
-.vpin-title{font-size:20px;font-weight:700;margin-bottom:4px;flex-shrink:0}
-.vpin-sub{font-size:13px;color:var(--tx2);margin-bottom:24px;flex-shrink:0;text-align:center}
-.blocked-box{background:rgba(255,77,106,0.08);border:0.5px solid rgba(255,77,106,0.3);border-radius:14px;padding:20px;text-align:center;max-width:300px;width:100%}
-.blocked-box p{font-size:14px;color:var(--dg);margin-bottom:14px;line-height:1.5}
-.recover-btn{background:rgba(255,77,106,0.12);border:0.5px solid rgba(255,77,106,0.4);color:var(--dg);padding:11px 22px;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.18s}
-.recover-btn:hover{background:rgba(255,77,106,0.2)}
+.vpin-title{font-size:20px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.vpin-sub{font-size:13px;color:var(--tx2);margin-bottom:20px}
+.blk-box{background:rgba(255,77,106,0.08);border:.5px solid rgba(255,77,106,0.28);border-radius:14px;padding:18px;text-align:center;max-width:290px;width:100%}
+.blk-p{font-size:13px;color:var(--dg);margin-bottom:12px;line-height:1.5}
+.blk-btn{background:rgba(255,77,106,0.12);border:.5px solid rgba(255,77,106,0.38);color:var(--dg);padding:10px 18px;border-radius:18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
 
 /* RECOVERY */
-#s-recovery{gap:10px;background:radial-gradient(ellipse at 50% 0%,rgba(255,77,106,0.08),var(--bg) 60%)}
-.rec-ico{font-size:48px;margin-bottom:4px;flex-shrink:0}
-.rec-title{font-size:20px;font-weight:700;flex-shrink:0}
-.rec-sub{font-size:13px;color:var(--tx2);text-align:center;line-height:1.6;max-width:290px;flex-shrink:0}
-.rec-sent{background:rgba(34,198,138,0.1);border:0.5px solid rgba(34,198,138,0.3);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--ok);text-align:center;max-width:290px;width:100%}
-.rec-input{width:100%;max-width:280px;background:var(--c1);border:0.5px solid var(--b2);border-radius:var(--rs);padding:14px;color:var(--tx);font-size:26px;font-family:'Courier New',monospace;text-align:center;letter-spacing:10px;outline:none;-webkit-appearance:none;flex-shrink:0}
-.rec-input:focus{border-color:var(--acc)}
-.rec-btn{width:100%;max-width:280px;padding:15px;border-radius:var(--r);background:var(--acc);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity 0.15s;flex-shrink:0}
-.rec-btn:hover{opacity:.9}
-.rec-back{font-size:13px;color:var(--tx3);cursor:pointer;flex-shrink:0}
-.rec-err{color:var(--dg);font-size:12px;min-height:16px;text-align:center;flex-shrink:0}
+#v-rec{gap:10px;background:var(--bg)}
+.rec-ico{font-size:44px;margin-bottom:4px}
+.rec-title{font-size:20px;font-weight:700;color:var(--tx)}
+.rec-sub{font-size:13px;color:var(--tx2);line-height:1.6;max-width:280px}
+.rec-ok{background:rgba(34,198,138,0.1);border:.5px solid rgba(34,198,138,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--ok);max-width:280px;width:100%;display:none}
+.rec-inp{width:100%;max-width:260px;background:var(--c1);border:.5px solid var(--b2);border-radius:var(--rs);padding:14px;color:var(--tx);font-size:24px;font-family:'Courier New',monospace;text-align:center;letter-spacing:10px;outline:none;-webkit-appearance:none}
+.rec-inp:focus{border-color:var(--acc)}
+.rec-go{width:100%;max-width:260px;padding:14px;border-radius:var(--r);background:var(--acc);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.rec-err{color:var(--dg);font-size:12px;min-height:16px}
+.rec-back{font-size:13px;color:var(--tx3);cursor:pointer;margin-top:4px}
 
 /* NEW PIN */
-#s-newpin{gap:10px;background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,0.12),var(--bg) 60%)}
-.np-lbl{font-size:13px;color:var(--tx2);flex-shrink:0}
+#v-newpin{gap:10px;background:var(--bg)}
+.np-title{font-size:20px;font-weight:700;color:var(--tx)}
+.np-lbl{font-size:13px;color:var(--tx2)}
 
-/* ── MAIN APP ── */
-#app{position:absolute;inset:0;display:none;flex-direction:column}
-#app.vis{display:flex}
-
-.sync-bar{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:4px;font-size:11px;color:var(--ok);background:rgba(34,198,138,0.08);border-bottom:0.5px solid rgba(34,198,138,0.15)}
-.sync-bar.syncing{background:rgba(108,99,255,0.08);border-color:rgba(108,99,255,0.15);color:var(--acc2)}
-.sync-bar.offline{background:rgba(245,166,35,0.08);border-color:rgba(245,166,35,0.15);color:var(--wn)}
-.sdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-.sdot.pulse{animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-.hdr{flex-shrink:0;padding:env(safe-area-inset-top,16px) 16px 0;background:rgba(10,10,15,0.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:0.5px solid var(--b1);z-index:10}
-.hdrtop{display:flex;align-items:center;gap:10px;padding:10px 0 8px}
-.hdr-back{background:var(--c1);border:none;color:var(--tx2);width:32px;height:32px;border-radius:16px;cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
-.hdr-back:hover{background:var(--c2)}
-.hdr-vault{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
-.hdr-vault-ico{font-size:18px}
-.hdr-vault-name{font-size:16px;font-weight:700}
-.hdr-vault-bdg{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
-.hdr-vault-bdg.personal{background:rgba(108,99,255,0.2);color:#8b85ff}
-.hdr-vault-bdg.trabajo{background:rgba(55,138,221,0.2);color:#6aabef}
-.hdrcnt{background:rgba(108,99,255,0.12);border:0.5px solid rgba(108,99,255,0.35);color:var(--acc2);font-size:11px;padding:4px 10px;border-radius:16px;white-space:nowrap;flex-shrink:0}
-.srch{display:flex;align-items:center;gap:8px;background:var(--c1);border:0.5px solid var(--b1);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+/* MAIN APP */
+#v-app{padding:0;justify-content:flex-start;align-items:stretch}
+.syncbar{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:4px;font-size:11px;color:var(--ok);background:rgba(34,198,138,0.08);border-bottom:.5px solid rgba(34,198,138,0.14)}
+.syncbar.sync{background:rgba(108,99,255,0.08);border-color:rgba(108,99,255,0.14);color:var(--acc2)}
+.syncbar.off{background:rgba(245,166,35,0.08);border-color:rgba(245,166,35,0.14);color:var(--wn)}
+.sdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sdot.pulse{animation:pl 1.5s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
+.hdr{flex-shrink:0;padding:env(safe-area-inset-top,14px) 14px 0;background:rgba(10,10,15,0.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:.5px solid var(--b1);z-index:10}
+.htop{display:flex;align-items:center;gap:8px;padding:10px 0 8px}
+.hbk{background:var(--c1);border:none;color:var(--tx2);width:30px;height:30px;border-radius:15px;cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.hvault{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.hico{font-size:17px}
+.hname{font-size:16px;font-weight:700;color:var(--tx)}
+.hbdg{font-size:10px;padding:2px 8px;border-radius:7px;font-weight:600}
+.hbdg.personal{background:rgba(108,99,255,0.2);color:var(--acc2)}
+.hbdg.trabajo{background:rgba(55,138,221,0.2);color:#6aabef}
+.hcnt{background:rgba(108,99,255,0.12);border:.5px solid rgba(108,99,255,0.32);color:var(--acc2);font-size:11px;padding:4px 10px;border-radius:14px;white-space:nowrap;flex-shrink:0}
+.srch{display:flex;align-items:center;gap:8px;background:var(--c1);border:.5px solid var(--b1);border-radius:10px;padding:10px 12px;margin-bottom:10px}
 .srch input{background:none;border:none;outline:none;color:var(--tx);font-size:15px;flex:1;font-family:inherit}
 .srch input::placeholder{color:var(--tx3)}
-.cats{display:flex;gap:8px;padding:0 0 10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cats{display:flex;gap:7px;padding:0 0 10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .cats::-webkit-scrollbar{display:none}
-.chip{padding:8px 14px;border-radius:20px;font-size:13px;font-weight:500;border:0.5px solid var(--b1);background:var(--c1);cursor:pointer;white-space:nowrap;color:var(--tx2);display:flex;align-items:center;gap:6px;flex-shrink:0;transition:all 0.15s}
+.chip{padding:7px 13px;border-radius:18px;font-size:12px;font-weight:500;border:.5px solid var(--b1);background:var(--c1);cursor:pointer;white-space:nowrap;color:var(--tx2);display:flex;align-items:center;gap:6px;flex-shrink:0}
 .chip.on{color:var(--tx);border-color:var(--acc);background:rgba(108,99,255,0.14)}
-.chip:hover{border-color:var(--b2)}
 .cdot{width:7px;height:7px;border-radius:50%}
-
-.sarea{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:80px}
-.sarea::-webkit-scrollbar{width:4px}
-.sarea::-webkit-scrollbar-track{background:transparent}
-.sarea::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
-
-.alt{margin:12px 14px 0;background:rgba(245,166,35,0.08);border:0.5px solid rgba(245,166,35,0.3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
-.alt:hover{background:rgba(245,166,35,0.12)}
-.adot{width:8px;height:8px;border-radius:50%;background:var(--wn);flex-shrink:0;animation:pulse 2s infinite}
+.sarea{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:70px}
+.altbox{margin:10px 12px 0;background:rgba(245,166,35,0.08);border:.5px solid rgba(245,166,35,0.28);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:9px;cursor:pointer}
+.adot{width:7px;height:7px;border-radius:50%;background:var(--wn);flex-shrink:0;animation:pl 2s infinite}
 .atxt{font-size:13px;color:var(--wn);flex:1;line-height:1.4}
-
-.slbl{font-size:10px;color:var(--tx3);padding:16px 16px 6px;letter-spacing:.8px;text-transform:uppercase;font-weight:600}
-.pwc{margin:0 12px 8px;background:var(--c1);border:0.5px solid var(--b1);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;min-height:72px;transition:all 0.12s}
-.pwc:hover{background:var(--c2);border-color:var(--b2)}
+.slbl{font-size:10px;color:var(--tx3);padding:14px 14px 6px;letter-spacing:.7px;text-transform:uppercase;font-weight:600}
+.pwc{margin:0 10px 7px;background:var(--c1);border:.5px solid var(--b1);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:68px;transition:background .12s;user-select:none}
 .pwc:active{background:var(--c2)}
-.pwico{width:48px;height:48px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px}
+.pwico{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
 .pwinf{flex:1;min-width:0}
-.pwnm{font-size:15px;font-weight:600;margin-bottom:2px}
-.pwus{font-size:13px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pwmt{margin-top:5px}
-.pwtag{display:inline-block;font-size:11px;padding:3px 9px;border-radius:8px;font-weight:500}
+.pwnm{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.pwus{font-size:12px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pwmt{margin-top:4px}
+.pwtag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:8px;font-weight:500}
 .pwtag.ok{background:rgba(34,198,138,0.12);color:var(--ok)}
 .pwtag.wn{background:rgba(245,166,35,0.12);color:var(--wn)}
-.pwtag.dg{background:rgba(255,77,106,0.14);color:var(--dg)}
-.pwchv{color:var(--tx3);font-size:20px;font-weight:200}
-
-.fab{position:absolute;bottom:76px;right:16px;width:54px;height:54px;border-radius:27px;background:var(--acc);border:none;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px var(--gl);cursor:pointer;z-index:20;transition:transform 0.15s}
-.fab:hover{transform:scale(1.05)}
-.fab:active{transform:scale(0.92)}
-
-.bnav{flex-shrink:0;height:calc(env(safe-area-inset-bottom,0px) + 58px);background:rgba(19,19,26,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--b1);display:flex;align-items:flex-start;justify-content:space-around;padding-top:8px;z-index:15}
-.ntab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;min-width:80px;transition:opacity 0.15s}
-.ntab:hover{opacity:.8}
-.ntico{font-size:22px}
+.pwtag.dg{background:rgba(255,77,106,0.13);color:var(--dg)}
+.pwchv{color:var(--tx3);font-size:18px;font-weight:200}
+.fab{position:absolute;right:14px;bottom:68px;width:52px;height:52px;border-radius:26px;background:var(--acc);border:none;color:white;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px var(--gl);cursor:pointer;z-index:20;transition:transform .15s}
+.fab:active{transform:scale(.91)}
+.bnav{flex-shrink:0;height:calc(env(safe-area-inset-bottom,0px)+56px);background:rgba(19,19,26,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:.5px solid var(--b1);display:flex;align-items:flex-start;justify-content:space-around;padding-top:8px;z-index:15}
+.ntab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;min-width:76px;user-select:none}
+.ntico{font-size:20px}
 .ntlbl{font-size:10px;color:var(--tx3);font-weight:500}
 .ntab.on .ntlbl{color:var(--acc2)}
+.empty{text-align:center;padding:60px 20px;color:var(--tx3)}
+.eico{font-size:46px;margin-bottom:12px}
+.etit{font-size:16px;font-weight:600;color:var(--tx2);margin-bottom:6px}
+.esub{font-size:13px}
 
 /* MODALS */
-.mov{position:absolute;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);z-index:50;display:none;align-items:flex-end}
-.mov.open{display:flex}
-.msh{width:100%;background:var(--sur);border-radius:22px 22px 0 0;border-top:0.5px solid var(--b2);padding:8px 0 0;max-height:90%;display:flex;flex-direction:column;animation:su .26s cubic-bezier(.32,.72,0,1)}
+.mov{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:50;display:none;align-items:flex-end}
+.mov.on{display:flex}
+.msh{width:100%;background:var(--sur);border-radius:22px 22px 0 0;border-top:.5px solid var(--b2);padding:8px 0 0;max-height:90%;display:flex;flex-direction:column;animation:su .25s cubic-bezier(.32,.72,0,1)}
 @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .mhndl{width:34px;height:4px;border-radius:2px;background:var(--b2);margin:0 auto 10px;flex-shrink:0}
-.mhdr{display:flex;align-items:center;justify-content:space-between;padding:0 18px 12px;border-bottom:0.5px solid var(--b1);flex-shrink:0}
-.mtit{font-size:17px;font-weight:700}
-.mclx{background:var(--c2);border:none;color:var(--tx2);width:30px;height:30px;border-radius:15px;cursor:pointer;font-size:14px;flex-shrink:0;transition:background 0.15s}
-.mclx:hover{background:var(--acc)}
-.mbody{padding:18px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px)}
-
-.dico{width:72px;height:72px;border-radius:18px;font-size:32px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
-.dnm{text-align:center;font-size:20px;font-weight:700;margin-bottom:3px}
-.dcat{text-align:center;font-size:13px;color:var(--tx2);margin-bottom:5px}
-.dage{text-align:center;font-size:13px;font-weight:600;margin-bottom:18px}
-.dfld{margin-bottom:14px}
-.dlbl{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-weight:600}
-.drow{display:flex;align-items:center;gap:6px;background:var(--c1);border:0.5px solid var(--b1);border-radius:var(--rs);padding:12px 14px;min-height:50px}
-.dval{flex:1;font-size:14px;font-family:'Courier New',monospace;letter-spacing:1px;word-break:break-all}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px;border-bottom:.5px solid var(--b1);flex-shrink:0}
+.mtit{font-size:16px;font-weight:700;color:var(--tx)}
+.mclx{background:var(--c2);border:none;color:var(--tx2);width:28px;height:28px;border-radius:14px;cursor:pointer;font-size:13px;flex-shrink:0}
+.mbody{padding:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:24px}
+.dico{width:66px;height:66px;border-radius:18px;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.dnm{text-align:center;font-size:18px;font-weight:700;color:var(--tx);margin-bottom:3px}
+.dcat{text-align:center;font-size:13px;color:var(--tx2);margin-bottom:4px}
+.dage{text-align:center;font-size:13px;font-weight:600;margin-bottom:16px}
+.dfld{margin-bottom:12px}
+.dlbl{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;font-weight:600}
+.drow{display:flex;align-items:center;gap:6px;background:var(--c1);border:.5px solid var(--b1);border-radius:var(--rs);padding:11px 13px;min-height:46px}
+.dval{flex:1;font-size:13px;font-family:'Courier New',monospace;letter-spacing:1px;word-break:break-all;color:var(--tx)}
 .dval.blur{filter:blur(7px);-webkit-user-select:none;user-select:none}
-.dbtn{background:var(--c2);border:0.5px solid var(--b1);border-radius:7px;color:var(--tx2);cursor:pointer;font-size:16px;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s}
-.dbtn:hover{background:var(--acc);color:white;border-color:var(--acc)}
+.dbtn{background:var(--c2);border:.5px solid var(--b1);border-radius:7px;color:var(--tx2);cursor:pointer;font-size:15px;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dbtn:active{background:var(--acc);color:white}
 .sbrw{display:flex;align-items:center;gap:7px;margin-top:7px}
 .sbr{height:4px;border-radius:2px;flex:1}
 .sbr.strong{background:linear-gradient(90deg,var(--ok),#0de88a)}
 .sbr.medium{background:linear-gradient(90deg,var(--wn),#ffcc44)}
 .sbr.weak{background:linear-gradient(90deg,var(--dg),#ff7a90)}
-.dacts{display:flex;gap:10px;margin-top:20px}
-.abtn{flex:1;padding:14px;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;border:none;min-height:50px;transition:opacity .15s}
+.dacts{display:flex;gap:10px;margin-top:16px}
+.abtn{flex:1;padding:13px;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;border:none;min-height:46px}
 .abtn.pri{background:var(--acc);color:white}
-.abtn.pri:hover{opacity:.88}
-.abtn.del{background:rgba(255,77,106,0.09);border:0.5px solid rgba(255,77,106,0.28);color:var(--dg)}
-.abtn.del:hover{background:rgba(255,77,106,0.18)}
-
-.ffld{margin-bottom:16px}
-.flbl{font-size:13px;color:var(--tx2);margin-bottom:7px;display:block;font-weight:500}
-.finp{width:100%;background:var(--c1);border:0.5px solid var(--b1);border-radius:var(--rs);padding:13px 14px;color:var(--tx);font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none;min-height:50px;transition:border-color .2s}
+.abtn.del{background:rgba(255,77,106,0.09);border:.5px solid rgba(255,77,106,0.28);color:var(--dg)}
+.ffld{margin-bottom:14px}
+.flbl{font-size:13px;color:var(--tx2);margin-bottom:6px;display:block;font-weight:500}
+.finp{width:100%;background:var(--c1);border:.5px solid var(--b1);border-radius:var(--rs);padding:12px 13px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;-webkit-appearance:none;min-height:46px;transition:border-color .2s}
 .finp:focus{border-color:var(--acc)}
-.fsel{width:100%;background:var(--c1);border:0.5px solid var(--b1);border-radius:var(--rs);padding:13px 14px;color:var(--tx);font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none;min-height:50px}
+.fsel{width:100%;background:var(--c1);border:.5px solid var(--b1);border-radius:var(--rs);padding:12px 13px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;-webkit-appearance:none;min-height:46px}
 .fpwr{display:flex;gap:8px}
 .fpwr .finp{flex:1}
-.gbtn{background:rgba(108,99,255,0.14);border:0.5px solid rgba(108,99,255,0.38);color:var(--acc2);padding:0 14px;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;min-height:50px;transition:background .15s}
-.gbtn:hover{background:rgba(108,99,255,0.24)}
-.svbtn{width:100%;padding:15px;border-radius:var(--r);background:var(--acc);border:none;color:white;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit;min-height:52px;transition:opacity .15s}
-.svbtn:hover{opacity:.88}
-
-.scrd{margin:4px 14px 14px;background:var(--c1);border:0.5px solid var(--b1);border-radius:var(--r);padding:20px;text-align:center}
-.scrng{font-size:50px;font-weight:200;margin-bottom:3px}
-.sclbl{font-size:13px;color:var(--tx2)}
-.scbar{margin-top:12px;height:6px;background:var(--c2);border-radius:3px}
+.gbtn{background:rgba(108,99,255,0.13);border:.5px solid rgba(108,99,255,0.35);color:var(--acc2);padding:0 12px;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;min-height:46px}
+.svbtn{width:100%;padding:14px;border-radius:var(--r);background:var(--acc);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit;min-height:48px}
+.scrd{margin:4px 10px 10px;background:var(--c1);border:.5px solid var(--b1);border-radius:var(--r);padding:18px;text-align:center}
+.scrng{font-size:44px;font-weight:200;color:var(--tx);margin-bottom:3px}
+.sclbl{font-size:12px;color:var(--tx2)}
+.scbar{margin-top:10px;height:6px;background:var(--c2);border-radius:3px}
 .scfil{height:100%;border-radius:3px;transition:width .6s}
-.sitm{margin:0 12px 8px;background:var(--c1);border:0.5px solid var(--b1);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:64px;transition:all .15s}
-.sitm:hover{background:var(--c2);border-color:var(--b2)}
-.sico{font-size:22px;width:36px;text-align:center;flex-shrink:0}
+.sitm{margin:0 10px 7px;background:var(--c1);border:.5px solid var(--b1);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;min-height:58px}
+.sico{font-size:20px;width:32px;text-align:center;flex-shrink:0}
 .sinf{flex:1}
-.snm{font-size:14px;font-weight:600;margin-bottom:2px}
-.sds{font-size:12px;color:var(--tx2);line-height:1.4}
-.sbdg{font-size:11px;padding:4px 9px;border-radius:8px;font-weight:700;white-space:nowrap}
+.snm{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.sds{font-size:11px;color:var(--tx2);line-height:1.4}
+.sbdg{font-size:11px;padding:3px 8px;border-radius:7px;font-weight:700;white-space:nowrap}
 .sbdg.ok{background:rgba(34,198,138,0.12);color:var(--ok)}
 .sbdg.bad{background:rgba(255,77,106,0.12);color:var(--dg)}
-.sinf2{margin:10px 14px;padding:14px;background:rgba(108,99,255,0.07);border:0.5px solid rgba(108,99,255,0.18);border-radius:var(--r);font-size:12px;color:var(--tx2);line-height:1.7}
-.tog{width:46px;height:28px;background:var(--acc);border-radius:14px;position:relative;flex-shrink:0;cursor:pointer}
-.tthm{width:24px;height:24px;background:white;border-radius:12px;position:absolute;top:2px;right:2px;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
-
-.empty{text-align:center;padding:60px 20px;color:var(--tx3)}
-.eico{font-size:50px;margin-bottom:14px}
-.etit{font-size:17px;font-weight:600;color:var(--tx2);margin-bottom:7px}
-.esub{font-size:13px}
-
-.toast{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);background:var(--ok);color:white;padding:10px 22px;border-radius:22px;font-size:14px;font-weight:700;z-index:300;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1}
-
-.covl{position:absolute;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
-.covl.open{display:flex}
-.cbox{background:var(--sur);border:0.5px solid var(--b2);border-radius:18px;padding:24px;width:100%;max-width:320px;text-align:center}
-.ctit{font-size:17px;font-weight:700;margin-bottom:8px}
-.cmsg{font-size:14px;color:var(--tx2);line-height:1.5;margin-bottom:20px}
+.sinf2{margin:8px 10px;padding:12px;background:rgba(108,99,255,0.06);border:.5px solid rgba(108,99,255,0.16);border-radius:var(--r);font-size:12px;color:var(--tx2);line-height:1.7;text-align:left}
+.tog{width:42px;height:25px;background:var(--acc);border-radius:13px;position:relative;flex-shrink:0}
+.tthm{width:21px;height:21px;background:white;border-radius:11px;position:absolute;top:2px;right:2px;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.toast{position:absolute;bottom:65px;left:50%;transform:translateX(-50%);background:var(--ok);color:white;padding:9px 18px;border-radius:18px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+.covl{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
+.covl.on{display:flex}
+.cbox{background:var(--sur);border:.5px solid var(--b2);border-radius:18px;padding:22px;width:100%;max-width:300px;text-align:center}
+.ctit{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:8px}
+.cmsg{font-size:13px;color:var(--tx2);line-height:1.5;margin-bottom:18px}
 .cbtns{display:flex;gap:10px}
-.cbtn{flex:1;padding:14px;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;border:none;min-height:50px;transition:opacity .15s}
+.cbtn{flex:1;padding:13px;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;border:none;min-height:46px}
 .cbtn.can{background:var(--c2);color:var(--tx2)}
 .cbtn.ok{background:var(--dg);color:white}
-.cbtn:hover{opacity:.85}
 </style>
 </head>
 <body>
-<div id="phone-shell">
-  <div class="phone-notch">
-    <div class="notch-speaker"></div>
-    <div class="notch-camera"></div>
-  </div>
-<div id="root">
+<div id="shell">
+  <div class="notch"><div class="n-bar"></div><div class="n-cam"></div></div>
+  <div id="screen">
 
-<!-- S1: LOCK -->
-<div class="screen vis" id="s-lock">
-  <div class="lico">🔐</div>
-  <div class="ltit">Vault</div>
-  <div class="lsub">Ingresa tu PIN principal</div>
-  <div class="pdots" id="ld">
-    <div class="dot" id="ld0"></div><div class="dot" id="ld1"></div>
-    <div class="dot" id="ld2"></div><div class="dot" id="ld3"></div>
-  </div>
-  <div class="pad">
-    <button class="pkey" onclick="lpp('1')">1</button>
-    <button class="pkey" onclick="lpp('2')">2<sub>ABC</sub></button>
-    <button class="pkey" onclick="lpp('3')">3<sub>DEF</sub></button>
-    <button class="pkey" onclick="lpp('4')">4<sub>GHI</sub></button>
-    <button class="pkey" onclick="lpp('5')">5<sub>JKL</sub></button>
-    <button class="pkey" onclick="lpp('6')">6<sub>MNO</sub></button>
-    <button class="pkey" onclick="lpp('7')">7<sub>PQRS</sub></button>
-    <button class="pkey" onclick="lpp('8')">8<sub>TUV</sub></button>
-    <button class="pkey" onclick="lpp('9')">9<sub>WXYZ</sub></button>
-    <button class="pkey zero" onclick="lpp('0')">0</button>
-    <button class="pkey del" onclick="lpd()">⌫</button>
-  </div>
-  <div class="perr" id="lerr"></div>
-  <div class="phint">PIN principal por defecto: 1234</div>
-</div>
-
-<!-- S2: VAULT SELECTOR -->
-<div class="screen" id="s-vaults">
-  <div class="vs-header">
-    <div class="vs-title">Mis Bóvedas</div>
-    <div class="vs-sub">Selecciona una bóveda para acceder</div>
-  </div>
-  <div class="vault-cards">
-    <div class="vcard personal" onclick="selectVault('personal')">
-      <div class="vcard-ico">🏠</div>
-      <div class="vcard-info">
-        <div class="vcard-name">Personal</div>
-        <div class="vcard-desc">Bancos, tarjetas, entretenimiento</div>
+    <!-- VIEW 1: LOCK -->
+    <div class="view active" id="v-lock">
+      <div class="lock-ico">🔐</div>
+      <div class="lock-title">Vault</div>
+      <div class="lock-sub">Ingresa tu PIN principal</div>
+      <div class="dots" id="ld"><div class="dot" id="ld0"></div><div class="dot" id="ld1"></div><div class="dot" id="ld2"></div><div class="dot" id="ld3"></div></div>
+      <div class="keypad">
+        <button class="key" onclick="LP('1')">1</button><button class="key" onclick="LP('2')">2<sub>ABC</sub></button><button class="key" onclick="LP('3')">3<sub>DEF</sub></button>
+        <button class="key" onclick="LP('4')">4<sub>GHI</sub></button><button class="key" onclick="LP('5')">5<sub>JKL</sub></button><button class="key" onclick="LP('6')">6<sub>MNO</sub></button>
+        <button class="key" onclick="LP('7')">7<sub>PQRS</sub></button><button class="key" onclick="LP('8')">8<sub>TUV</sub></button><button class="key" onclick="LP('9')">9<sub>WXYZ</sub></button>
+        <button class="key k0" onclick="LP('0')">0</button><button class="key del" onclick="LDel()">⌫</button>
       </div>
-      <div class="vcard-lock">🔒</div>
+      <div class="perr" id="lerr"></div>
+      <div class="phint">PIN principal por defecto: 1234</div>
     </div>
-    <div class="vcard trabajo" onclick="selectVault('trabajo')">
-      <div class="vcard-ico">💼</div>
-      <div class="vcard-info">
-        <div class="vcard-name">Trabajo</div>
-        <div class="vcard-desc">Sistemas, correos, herramientas</div>
+
+    <!-- VIEW 2: VAULT SELECTOR -->
+    <div class="view" id="v-vaults">
+      <div class="vs-title">Mis Bóvedas</div>
+      <div class="vs-sub">Selecciona una bóveda</div>
+      <div class="vcard personal" onclick="selVault('personal')">
+        <div class="vcard-ico">🏠</div>
+        <div class="vcard-info"><div class="vcard-name">Personal</div><div class="vcard-desc">Bancos, tarjetas, entretenimiento</div></div>
+        <span style="color:var(--tx3);font-size:16px">🔒</span>
       </div>
-      <div class="vcard-lock">🔒</div>
-    </div>
-  </div>
-  <div class="vs-logout" onclick="logout()">⬅ Cerrar sesión</div>
-</div>
-
-<!-- S3: VAULT PIN -->
-<div class="screen" id="s-vpin">
-  <button class="vpin-back" onclick="backToVaults()">←</button>
-  <div class="vpin-badge personal" id="vpin-badge">Personal</div>
-  <div class="vpin-title" id="vpin-title">Bóveda Personal</div>
-  <div class="vpin-sub" id="vpin-sub">Ingresa el PIN de esta bóveda</div>
-  <div id="vpin-blocked" style="display:none">
-    <div class="blocked-box">
-      <p>🔒 Bóveda bloqueada tras 5 intentos fallidos</p>
-      <button class="recover-btn" onclick="sendRecovery()">📧 Enviar código al correo</button>
-    </div>
-  </div>
-  <div id="vpin-pad">
-    <div class="pdots" id="vd">
-      <div class="dot" id="vd0"></div><div class="dot" id="vd1"></div>
-      <div class="dot" id="vd2"></div><div class="dot" id="vd3"></div>
-    </div>
-    <div class="pad">
-      <button class="pkey" onclick="vpp('1')">1</button>
-      <button class="pkey" onclick="vpp('2')">2<sub>ABC</sub></button>
-      <button class="pkey" onclick="vpp('3')">3<sub>DEF</sub></button>
-      <button class="pkey" onclick="vpp('4')">4<sub>GHI</sub></button>
-      <button class="pkey" onclick="vpp('5')">5<sub>JKL</sub></button>
-      <button class="pkey" onclick="vpp('6')">6<sub>MNO</sub></button>
-      <button class="pkey" onclick="vpp('7')">7<sub>PQRS</sub></button>
-      <button class="pkey" onclick="vpp('8')">8<sub>TUV</sub></button>
-      <button class="pkey" onclick="vpp('9')">9<sub>WXYZ</sub></button>
-      <button class="pkey zero" onclick="vpp('0')">0</button>
-      <button class="pkey del" onclick="vpd()">⌫</button>
-    </div>
-    <div class="perr" id="verr"></div>
-  </div>
-</div>
-
-<!-- S4: RECOVERY -->
-<div class="screen" id="s-recovery">
-  <div class="rec-ico">📧</div>
-  <div class="rec-title">Código de recuperación</div>
-  <div class="rec-sub">Código de 6 dígitos enviado a<br><strong>leonardosevillaanda@outlook.com</strong></div>
-  <div id="rec-sent" style="display:none" class="rec-sent">✅ Código enviado. Revisa tu correo.</div>
-  <input class="rec-input" id="rec-code" type="text" maxlength="6" placeholder="000000" inputmode="numeric">
-  <div class="rec-err" id="rec-err"></div>
-  <button class="rec-btn" onclick="verifyCode()">Verificar código</button>
-  <div class="rec-back" onclick="backToVpin()">← Volver</div>
-</div>
-
-<!-- S5: NEW PIN -->
-<div class="screen" id="s-newpin">
-  <div class="rec-ico">🔑</div>
-  <div class="ltit" id="np-title">Nuevo PIN</div>
-  <div class="np-lbl" id="np-lbl">Ingresa tu nuevo PIN de bóveda</div>
-  <div class="pdots" id="npd">
-    <div class="dot" id="npd0"></div><div class="dot" id="npd1"></div>
-    <div class="dot" id="npd2"></div><div class="dot" id="npd3"></div>
-  </div>
-  <div class="pad">
-    <button class="pkey" onclick="npp('1')">1</button>
-    <button class="pkey" onclick="npp('2')">2<sub>ABC</sub></button>
-    <button class="pkey" onclick="npp('3')">3<sub>DEF</sub></button>
-    <button class="pkey" onclick="npp('4')">4<sub>GHI</sub></button>
-    <button class="pkey" onclick="npp('5')">5<sub>JKL</sub></button>
-    <button class="pkey" onclick="npp('6')">6<sub>MNO</sub></button>
-    <button class="pkey" onclick="npp('7')">7<sub>PQRS</sub></button>
-    <button class="pkey" onclick="npp('8')">8<sub>TUV</sub></button>
-    <button class="pkey" onclick="npp('9')">9<sub>WXYZ</sub></button>
-    <button class="pkey zero" onclick="npp('0')">0</button>
-    <button class="pkey del" onclick="npd_()">⌫</button>
-  </div>
-  <div class="perr" id="nperr"></div>
-</div>
-
-<!-- APP -->
-<div id="app">
-  <div class="sync-bar" id="syncbar"><div class="sdot" id="sdot"></div><span id="synctxt">Sincronizado ✓</span></div>
-  <div class="hdr">
-    <div class="hdrtop">
-      <button class="hdr-back" onclick="closeVault()">←</button>
-      <div class="hdr-vault">
-        <span class="hdr-vault-ico" id="hico">🏠</span>
-        <span class="hdr-vault-name" id="hname">Personal</span>
-        <span class="hdr-vault-bdg personal" id="hbdg">Personal</span>
+      <div class="vcard trabajo" onclick="selVault('trabajo')">
+        <div class="vcard-ico">💼</div>
+        <div class="vcard-info"><div class="vcard-name">Trabajo</div><div class="vcard-desc">Sistemas, correos, herramientas</div></div>
+        <span style="color:var(--tx3);font-size:16px">🔒</span>
       </div>
-      <div class="hdrcnt" id="badge">0 claves</div>
+      <div class="vs-logout" onclick="goView('v-lock')">⬅ Cerrar sesión</div>
     </div>
-    <div class="srch"><span style="font-size:14px;color:var(--tx3)">🔍</span><input type="text" placeholder="Buscar..." id="sinput" oninput="renderList()"></div>
-    <div class="cats" id="cats"></div>
-  </div>
-  <div class="sarea" id="sarea"><div id="altbx"></div><div id="lstbx"></div></div>
-  <button class="fab" onclick="openAdd()">＋</button>
-  <div class="bnav">
-    <div class="ntab on" onclick="goTab('home')" id="t-home"><div class="ntico">🏠</div><div class="ntlbl">Inicio</div></div>
-    <div class="ntab" onclick="goTab('sec')" id="t-sec"><div class="ntico">🛡️</div><div class="ntlbl">Seguridad</div></div>
-    <div class="ntab" onclick="goTab('cfg')" id="t-cfg"><div class="ntico">⚙️</div><div class="ntlbl">Ajustes</div></div>
-  </div>
-</div>
 
-<!-- MODALS -->
-<div class="mov" id="m-det"><div class="msh"><div class="mhndl"></div><div class="mhdr"><div class="mtit" id="m-dtit">Detalle</div><button class="mclx" onclick="cm('m-det')">✕</button></div><div class="mbody" id="m-dbody"></div></div></div>
-<div class="mov" id="m-form"><div class="msh"><div class="mhndl"></div><div class="mhdr"><div class="mtit" id="m-ftit">Nueva clave</div><button class="mclx" onclick="cm('m-form')">✕</button></div><div class="mbody">
-  <div class="ffld"><label class="flbl">Nombre del servicio</label><input class="finp" id="fn" type="text" placeholder="Ej: Banco Santander" autocomplete="off"></div>
-  <div class="ffld"><label class="flbl">Usuario / Email</label><input class="finp" id="fu" type="text" placeholder="usuario@email.com" autocomplete="off" autocapitalize="none"></div>
-  <div class="ffld"><label class="flbl">Contraseña</label><div class="fpwr"><input class="finp" id="fp" type="password" placeholder="••••••••" autocomplete="new-password" oninput="updStr()"><button class="gbtn" onclick="genPw()">⚡ Generar</button></div><div id="stri"></div></div>
-  <div class="ffld"><label class="flbl">Categoría</label><select class="fsel" id="fc"><option value="bank">🏦 Banco</option><option value="tc">💳 Tarjeta crédito</option><option value="entertain">🎬 Entretenimiento</option><option value="social">📱 Redes sociales</option><option value="work">💼 Trabajo</option><option value="other">🔑 Otro</option></select></div>
-  <div class="ffld"><label class="flbl">Notas (opcional)</label><input class="finp" id="fnt" type="text" placeholder="Información adicional..." autocomplete="off"></div>
-  <input type="hidden" id="fid">
-  <button class="svbtn" onclick="saveEntry()">💾 Guardar y sincronizar</button>
-</div></div></div>
-<div class="mov" id="m-pin"><div class="msh"><div class="mhndl"></div><div class="mhdr"><div class="mtit">Cambiar PIN principal</div><button class="mclx" onclick="cm('m-pin')">✕</button></div><div class="mbody">
-  <div class="ffld"><label class="flbl">PIN actual</label><input class="finp" id="pc" type="password" placeholder="••••" maxlength="4" inputmode="numeric"></div>
-  <div class="ffld"><label class="flbl">Nuevo PIN</label><input class="finp" id="pn" type="password" placeholder="••••" maxlength="4" inputmode="numeric"></div>
-  <div class="ffld"><label class="flbl">Confirmar</label><input class="finp" id="pk" type="password" placeholder="••••" maxlength="4" inputmode="numeric"></div>
-  <div class="perr" id="perr2" style="margin-bottom:10px"></div>
-  <button class="svbtn" onclick="chPin()">Cambiar PIN principal</button>
-</div></div></div>
-<div class="covl" id="covl"><div class="cbox"><div class="ctit">Eliminar contraseña</div><div class="cmsg">Esta acción no se puede deshacer.</div><div class="cbtns"><button class="cbtn can" onclick="cclose()">Cancelar</button><button class="cbtn ok" id="cok">Eliminar</button></div></div></div>
-<div class="toast" id="toast">✓ Copiado</div>
+    <!-- VIEW 3: VAULT PIN -->
+    <div class="view" id="v-vpin">
+      <button class="vpin-back" onclick="goView('v-vaults')">←</button>
+      <div class="vpin-badge personal" id="vbadge">Personal</div>
+      <div class="vpin-title" id="vtitle">Bóveda Personal</div>
+      <div class="vpin-sub" id="vsub">Ingresa el PIN de tu bóveda</div>
+      <div id="vblk" style="display:none">
+        <div class="blk-box"><div class="blk-p">🔒 Bóveda bloqueada tras 5 intentos fallidos</div><button class="blk-btn" onclick="sendRec()">📧 Enviar código al correo</button></div>
+      </div>
+      <div id="vpad">
+        <div class="dots" id="vd"><div class="dot" id="vd0"></div><div class="dot" id="vd1"></div><div class="dot" id="vd2"></div><div class="dot" id="vd3"></div></div>
+        <div class="keypad">
+          <button class="key" onclick="VP('1')">1</button><button class="key" onclick="VP('2')">2<sub>ABC</sub></button><button class="key" onclick="VP('3')">3<sub>DEF</sub></button>
+          <button class="key" onclick="VP('4')">4<sub>GHI</sub></button><button class="key" onclick="VP('5')">5<sub>JKL</sub></button><button class="key" onclick="VP('6')">6<sub>MNO</sub></button>
+          <button class="key" onclick="VP('7')">7<sub>PQRS</sub></button><button class="key" onclick="VP('8')">8<sub>TUV</sub></button><button class="key" onclick="VP('9')">9<sub>WXYZ</sub></button>
+          <button class="key k0" onclick="VP('0')">0</button><button class="key del" onclick="VDel()">⌫</button>
+        </div>
+        <div class="perr" id="verr"></div>
+      </div>
+    </div>
 
-</div><!-- #root -->
+    <!-- VIEW 4: RECOVERY -->
+    <div class="view" id="v-rec">
+      <div class="rec-ico">📧</div>
+      <div class="rec-title">Código de recuperación</div>
+      <div class="rec-sub">Ingresa el código de 6 dígitos enviado a<br><strong>leonardosevillaanda@outlook.com</strong></div>
+      <div class="rec-ok" id="rec-ok">✅ Código enviado. Revisa tu correo.</div>
+      <input class="rec-inp" id="rec-code" type="text" maxlength="6" placeholder="000000" inputmode="numeric">
+      <div class="rec-err" id="rec-err"></div>
+      <button class="rec-go" onclick="verCode()">Verificar código</button>
+      <div class="rec-back" onclick="goView('v-vpin')">← Volver</div>
+    </div>
+
+    <!-- VIEW 5: NEW PIN -->
+    <div class="view" id="v-newpin">
+      <div class="rec-ico">🔑</div>
+      <div class="np-title" id="np-title">Nuevo PIN de bóveda</div>
+      <div class="np-lbl" id="np-lbl">Ingresa tu nuevo PIN</div>
+      <div class="dots" id="npd"><div class="dot" id="npd0"></div><div class="dot" id="npd1"></div><div class="dot" id="npd2"></div><div class="dot" id="npd3"></div></div>
+      <div class="keypad">
+        <button class="key" onclick="NP('1')">1</button><button class="key" onclick="NP('2')">2<sub>ABC</sub></button><button class="key" onclick="NP('3')">3<sub>DEF</sub></button>
+        <button class="key" onclick="NP('4')">4<sub>GHI</sub></button><button class="key" onclick="NP('5')">5<sub>JKL</sub></button><button class="key" onclick="NP('6')">6<sub>MNO</sub></button>
+        <button class="key" onclick="NP('7')">7<sub>PQRS</sub></button><button class="key" onclick="NP('8')">8<sub>TUV</sub></button><button class="key" onclick="NP('9')">9<sub>WXYZ</sub></button>
+        <button class="key k0" onclick="NP('0')">0</button><button class="key del" onclick="NDel()">⌫</button>
+      </div>
+      <div class="perr" id="nperr"></div>
+    </div>
+
+    <!-- VIEW 6: MAIN APP -->
+    <div class="view" id="v-app">
+      <div class="syncbar" id="sbar"><div class="sdot" id="sdot"></div><span id="stxt">Sincronizado ✓</span></div>
+      <div class="hdr">
+        <div class="htop">
+          <button class="hbk" onclick="closeVault()">←</button>
+          <div class="hvault"><span class="hico" id="hico">🏠</span><span class="hname" id="hname">Personal</span><span class="hbdg personal" id="hbdg">Personal</span></div>
+          <div class="hcnt" id="hcnt">0 claves</div>
+        </div>
+        <div class="srch"><span style="font-size:14px;color:var(--tx3)">🔍</span><input type="text" placeholder="Buscar..." id="sinput" oninput="renderList()"></div>
+        <div class="cats" id="cats"></div>
+      </div>
+      <div class="sarea" id="sarea"><div id="altbx"></div><div id="lstbx"></div></div>
+      <button class="fab" onclick="openAdd()">＋</button>
+      <div class="bnav">
+        <div class="ntab on" onclick="goTab('home')" id="t-home"><div class="ntico">🏠</div><div class="ntlbl">Inicio</div></div>
+        <div class="ntab" onclick="goTab('sec')" id="t-sec"><div class="ntico">🛡️</div><div class="ntlbl">Seguridad</div></div>
+        <div class="ntab" onclick="goTab('cfg')" id="t-cfg"><div class="ntico">⚙️</div><div class="ntlbl">Ajustes</div></div>
+      </div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="mov" id="m-det"><div class="msh"><div class="mhndl"></div><div class="mhdr"><div class="mtit" id="m-dtit">Detalle</div><button class="mclx" onclick="CM('m-det')">✕</button></div><div class="mbody" id="m-dbody"></div></div></div>
+    <div class="mov" id="m-form"><div class="msh"><div class="mhndl"></div><div class="mhdr"><div class="mtit" id="m-ftit">Nueva clave</div><button class="mclx" onclick="CM('m-form')">✕</button></div><div class="mbody">
+      <div class="ffld"><label class="flbl">Nombre del servicio</label><input class="finp" id="fn" type="text" placeholder="Ej: Banco Santander" autocomplete="off"></div>
+      <div class="ffld"><label class="flbl">Usuario / Email</label><input class="finp" id="fu" type="text" placeholder="usuario@email.com" autocomplete="off" autocapitalize="none"></div>
+      <div class="ffld"><label class="flbl">Contraseña</label><div class="fpwr"><input class="finp" id="fp" type="password" placeholder="••••••••" autocomplete="new-password" oninput="updStr()"><button class="gbtn" onclick="genPw()">⚡ Generar</button></div><div id="stri"></div></div>
+      <div class="ffld"><label class="flbl">Categoría</label><select class="fsel" id="fc"><option value="bank">🏦 Banco</option><option value="tc">💳 Tarjeta crédito</option><option value="entertain">🎬 Entretenimiento</option><option value="social">📱 Redes sociales</option><option value="work">💼 Trabajo</option><option value="other">🔑 Otro</option></select></div>
+      <div class="ffld"><label class="flbl">Notas (opcional)</label><input class="finp" id="fnt" type="text" placeholder="Información adicional..." autocomplete="off"></div>
+      <input type="hidden" id="fid">
+      <button class="svbtn" onclick="saveEntry()">💾 Guardar y sincronizar</button>
+    </div></div></div>
+    <div class="mov" id="m-pin"><div class="msh"><div class="mhndl"></div><div class="mhdr"><div class="mtit">Cambiar PIN principal</div><button class="mclx" onclick="CM('m-pin')">✕</button></div><div class="mbody">
+      <div class="ffld"><label class="flbl">PIN actual</label><input class="finp" id="pc" type="password" placeholder="••••" maxlength="4" inputmode="numeric"></div>
+      <div class="ffld"><label class="flbl">Nuevo PIN</label><input class="finp" id="pn" type="password" placeholder="••••" maxlength="4" inputmode="numeric"></div>
+      <div class="ffld"><label class="flbl">Confirmar</label><input class="finp" id="pk" type="password" placeholder="••••" maxlength="4" inputmode="numeric"></div>
+      <div class="perr" id="perr2" style="margin-bottom:10px"></div>
+      <button class="svbtn" onclick="chPin()">Cambiar PIN principal</button>
+    </div></div></div>
+    <div class="covl" id="covl"><div class="cbox"><div class="ctit">Eliminar contraseña</div><div class="cmsg">Esta acción no se puede deshacer.</div><div class="cbtns"><button class="cbtn can" onclick="CC()">Cancelar</button><button class="cbtn ok" id="cok">Eliminar</button></div></div></div>
+    <div class="toast" id="toast">✓ Copiado</div>
+  </div><!-- #screen -->
+  <div class="homebar"><div></div></div>
+</div><!-- #shell -->
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const fbapp = initializeApp({
+const FB = initializeApp({
   apiKey:"AIzaSyBVbjDLTlivlsHfVw4pEL5hMa35CUoCuhU",
   authDomain:"vault-app-542df.firebaseapp.com",
   databaseURL:"https://vault-app-542df-default-rtdb.firebaseio.com",
@@ -581,259 +404,127 @@ const fbapp = initializeApp({
   messagingSenderId:"548805420766",
   appId:"1:548805420766:web:9b57294cabb9e75d48444f"
 });
-const db = getDatabase(fbapp);
-const auth = getAuth(fbapp);
-const RECOVERY_EMAIL = 'leonardosevillaanda@outlook.com';
+const DB = getDatabase(FB);
+const AUTH = getAuth(FB);
+const REC_EMAIL = 'leonardosevillaanda@outlook.com';
 const MAX_ATT = 5;
+const CATS = {bank:{l:'Banco',e:'🏦',c:'#6c63ff'},tc:{l:'Tarjeta crédito',e:'💳',c:'#f5a623'},entertain:{l:'Entretenimiento',e:'🎬',c:'#22c68a'},social:{l:'Redes sociales',e:'📱',c:'#e24b8a'},work:{l:'Trabajo',e:'💼',c:'#378add'},other:{l:'Otro',e:'🔑',c:'#888780'}};
+const VI = {personal:{n:'Personal',i:'🏠'},trabajo:{n:'Trabajo',i:'💼'}};
 
 // ── CRYPTO ──
 async function getKey(pin){return crypto.subtle.importKey('raw',new TextEncoder().encode(pin.padEnd(32,'0')),'AES-GCM',false,['encrypt','decrypt']);}
-async function enc(data,pin){const key=await getKey(pin),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(data))),buf=new Uint8Array(iv.length+ct.byteLength);buf.set(iv,0);buf.set(new Uint8Array(ct),iv.length);return btoa(String.fromCharCode(...buf));}
-async function dec(b64,pin){try{const key=await getKey(pin),buf=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)),d=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(0,12)},key,buf.slice(12));return JSON.parse(new TextDecoder().decode(d));}catch(e){return null;}}
+async function ENC(data,pin){const k=await getKey(pin),iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(data))),b=new Uint8Array(iv.length+ct.byteLength);b.set(iv,0);b.set(new Uint8Array(ct),iv.length);return btoa(String.fromCharCode(...b));}
+async function DEC(b64,pin){try{const k=await getKey(pin),b=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)),d=await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(0,12)},k,b.slice(12));return JSON.parse(new TextDecoder().decode(d));}catch(e){return null;}}
 
 // ── STATE ──
-const CATS={bank:{label:'Banco',emoji:'🏦',color:'#6c63ff'},tc:{label:'Tarjeta crédito',emoji:'💳',color:'#f5a623'},entertain:{label:'Entretenimiento',emoji:'🎬',color:'#22c68a'},social:{label:'Redes sociales',emoji:'📱',color:'#e24b8a'},work:{label:'Trabajo',emoji:'💼',color:'#378add'},other:{label:'Otro',emoji:'🔑',color:'#888780'}};
-const VI={personal:{name:'Personal',ico:'🏠'},trabajo:{name:'Trabajo',ico:'💼'}};
-let mainPin=localStorage.getItem('v_mp')||'1234';
-let vPins=JSON.parse(localStorage.getItem('v_vp')||'{"personal":"5678","trabajo":"9012"}');
-let vAtt=JSON.parse(localStorage.getItem('v_va')||'{"personal":0,"trabajo":0}');
-let vLocked=JSON.parse(localStorage.getItem('v_vl')||'{"personal":false,"trabajo":false}');
-let cv=null,vData={personal:[],trabajo:[]},tab='home',fcat='all',delId=null,pviz=false;
-let recCode=null,recVault=null,npFirst=null,npVault=null,fbUnsub=null;
+let MP = localStorage.getItem('vMP')||'1234';
+let VP = JSON.parse(localStorage.getItem('vVP')||'{"personal":"5678","trabajo":"9012"}');
+let VA = JSON.parse(localStorage.getItem('vVA')||'{"personal":0,"trabajo":0}');
+let VL = JSON.parse(localStorage.getItem('vVL')||'{"personal":false,"trabajo":false}');
+let CV = null, VD = {personal:[],trabajo:[]}, tab='home', fcat='all', delId=null, pviz=false;
+let recCode=null, recVault=null, npFirst=null, npVault=null, fbUnsub=null;
 
-function saveState(){localStorage.setItem('v_mp',mainPin);localStorage.setItem('v_vp',JSON.stringify(vPins));localStorage.setItem('v_va',JSON.stringify(vAtt));localStorage.setItem('v_vl',JSON.stringify(vLocked));}
+function saveS(){localStorage.setItem('vMP',MP);localStorage.setItem('vVP',JSON.stringify(VP));localStorage.setItem('vVA',JSON.stringify(VA));localStorage.setItem('vVL',JSON.stringify(VL));}
 
-// ── SCREEN SWITCHER ──
-function show(id){
-  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('vis');});
-  document.getElementById('app').classList.remove('vis');
-  document.getElementById('app').style.display='none';
-  const el=document.getElementById(id);
-  if(!el)return;
-  if(id==='app'){el.style.display='flex';el.classList.add('vis');}
-  else{el.classList.add('vis');}
-}
+// ── VIEW SWITCHER ──
+function goView(id){document.querySelectorAll('.view').forEach(v=>{v.classList.remove('active');});document.getElementById(id).classList.add('active');}
+window.goView = goView;
 
 // ── HELPERS ──
 function dsin(d){return Math.floor((Date.now()-new Date(d).getTime())/86400000);}
 function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function ea(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
-function toast(m){const el=document.getElementById('toast');el.textContent=m;el.className='toast show';setTimeout(()=>el.className='toast',2200);}
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.className='toast on';setTimeout(()=>el.className='toast',2200);}
+function setSS(s,m){const b=document.getElementById('sbar'),t=document.getElementById('stxt'),d=document.getElementById('sdot');b.className='syncbar'+(s==='sync'?' sync':s==='off'?' off':'');d.className='sdot'+(s==='sync'?' pulse':'');t.textContent=m;}
 
-// ── SCREEN 1: MAIN LOCK ──
+// ── LOCK PIN ──
 let lpe='';
-window.lpp=function(d){if(lpe.length>=4)return;lpe+=d;luDots();if(lpe.length===4)setTimeout(()=>{if(lpe===mainPin){lpe='';luDots();show('s-vaults');}else{document.getElementById('lerr').textContent='PIN incorrecto.';document.querySelectorAll('#ld .dot').forEach(x=>{x.classList.add('sh');setTimeout(()=>x.classList.remove('sh'),420);});lpe='';luDots();}},150);}
-window.lpd=function(){if(lpe.length>0){lpe=lpe.slice(0,-1);luDots();}}
-function luDots(){for(let i=0;i<4;i++)document.getElementById('ld'+i).className='dot'+(i<lpe.length?' on':'');if(lpe.length<4)document.getElementById('lerr').textContent='';}
-window.logout=function(){lpe='';luDots();show('s-lock');}
+window.LP=function(d){if(lpe.length>=4)return;lpe+=d;lDots();if(lpe.length===4)setTimeout(()=>{if(lpe===MP){lpe='';lDots();goView('v-vaults');}else{document.getElementById('lerr').textContent='PIN incorrecto.';document.querySelectorAll('#ld .dot').forEach(x=>{x.classList.add('shake');setTimeout(()=>x.classList.remove('shake'),420);});lpe='';lDots();}},150);}
+window.LDel=function(){if(lpe.length>0){lpe=lpe.slice(0,-1);lDots();}}
+function lDots(){for(let i=0;i<4;i++)document.getElementById('ld'+i).className='dot'+(i<lpe.length?' on':'');if(lpe.length<4)document.getElementById('lerr').textContent='';}
 
-// ── SCREEN 2: SELECT VAULT ──
-window.selectVault=function(v){
-  cv=v;
-  const vi=VI[v];
-  document.getElementById('vpin-badge').textContent=vi.name;
-  document.getElementById('vpin-badge').className='vpin-badge '+v;
-  document.getElementById('vpin-title').textContent='Bóveda '+vi.name;
-  document.getElementById('vpin-sub').textContent='Ingresa el PIN de tu bóveda '+vi.name;
-  vpe='';vuDots();document.getElementById('verr').textContent='';
-  if(vLocked[v]){document.getElementById('vpin-pad').style.display='none';document.getElementById('vpin-blocked').style.display='block';}
-  else{document.getElementById('vpin-pad').style.display='block';document.getElementById('vpin-blocked').style.display='none';}
-  show('s-vpin');
+// ── SELECT VAULT ──
+window.selVault=function(v){
+  CV=v;const vi=VI[v];
+  document.getElementById('vbadge').textContent=vi.n;
+  document.getElementById('vbadge').className='vpin-badge '+v;
+  document.getElementById('vtitle').textContent='Bóveda '+vi.n;
+  document.getElementById('vsub').textContent='Ingresa el PIN de tu bóveda '+vi.n;
+  vpe='';vDots();document.getElementById('verr').textContent='';
+  if(VL[v]){document.getElementById('vpad').style.display='none';document.getElementById('vblk').style.display='block';}
+  else{document.getElementById('vpad').style.display='block';document.getElementById('vblk').style.display='none';}
+  goView('v-vpin');
 }
-window.backToVaults=function(){cv=null;vpe='';vuDots();show('s-vaults');}
 
-// ── SCREEN 3: VAULT PIN ──
+// ── VAULT PIN ──
 let vpe='';
-window.vpp=function(d){
-  if(vpe.length>=4)return;vpe+=d;vuDots();
-  if(vpe.length===4)setTimeout(async()=>{
-    if(vpe===vPins[cv]){
-      vAtt[cv]=0;saveState();vpe='';vuDots();
-      await openVault(cv,vPins[cv]);
-    }else{
-      vAtt[cv]++;saveState();
-      const left=MAX_ATT-vAtt[cv];
-      if(vAtt[cv]>=MAX_ATT){vLocked[cv]=true;saveState();document.getElementById('vpin-pad').style.display='none';document.getElementById('vpin-blocked').style.display='block';}
-      else{document.getElementById('verr').textContent=`PIN incorrecto. ${left} intento${left!==1?'s':''} restante${left!==1?'s':''}.`;document.querySelectorAll('#vd .dot').forEach(x=>{x.classList.add('sh');setTimeout(()=>x.classList.remove('sh'),420);});}
-      vpe='';vuDots();
-    }
-  },150);
-}
-window.vpd=function(){if(vpe.length>0){vpe=vpe.slice(0,-1);vuDots();}}
-function vuDots(){for(let i=0;i<4;i++)document.getElementById('vd'+i).className='dot'+(i<vpe.length?' on':'');if(vpe.length<4)document.getElementById('verr').textContent='';}
+window.VP=function(d){if(vpe.length>=4)return;vpe+=d;vDots();if(vpe.length===4)setTimeout(async()=>{
+  if(vpe===VP[CV]){VA[CV]=0;saveS();vpe='';vDots();await openVault(CV);}
+  else{VA[CV]++;saveS();const l=MAX_ATT-VA[CV];if(VA[CV]>=MAX_ATT){VL[CV]=true;saveS();document.getElementById('vpad').style.display='none';document.getElementById('vblk').style.display='block';}else{document.getElementById('verr').textContent=`PIN incorrecto. ${l} intento${l!==1?'s':''} restante${l!==1?'s':''}.`;document.querySelectorAll('#vd .dot').forEach(x=>{x.classList.add('shake');setTimeout(()=>x.classList.remove('shake'),420);});}vpe='';vDots();}
+},150);}
+window.VDel=function(){if(vpe.length>0){vpe=vpe.slice(0,-1);vDots();}}
+function vDots(){for(let i=0;i<4;i++)document.getElementById('vd'+i).className='dot'+(i<vpe.length?' on':'');if(vpe.length<4)document.getElementById('verr').textContent='';}
 
 // ── RECOVERY ──
-window.sendRecovery=async function(){
-  recVault=cv;
-  recCode=Math.floor(100000+Math.random()*900000).toString();
-  await set(ref(db,'vault/recovery'),{code:recCode,vault:recVault,exp:Date.now()+(15*60*1000)});
-  try{await sendPasswordResetEmail(auth,RECOVERY_EMAIL);}catch(e){}
-  document.getElementById('rec-sent').style.display='block';
-  document.getElementById('rec-code').value='';
-  document.getElementById('rec-err').textContent='';
-  show('s-recovery');
-}
-window.backToVpin=function(){show('s-vpin');}
-window.verifyCode=async function(){
-  const entered=document.getElementById('rec-code').value.trim();
-  try{
-    const snap=await new Promise(res=>{onValue(ref(db,'vault/recovery'),s=>{res(s.val());},{onlyOnce:true});});
-    if(snap&&snap.code===entered&&Date.now()<snap.exp){
-      await remove(ref(db,'vault/recovery'));
-      vLocked[recVault]=false;vAtt[recVault]=0;saveState();
-      npVault=recVault;npFirst=null;npe='';npuDots();
-      document.getElementById('np-lbl').textContent='Ingresa tu nuevo PIN de bóveda';
-      document.getElementById('np-title').textContent='Nuevo PIN';
-      document.getElementById('nperr').textContent='';
-      show('s-newpin');
-    }else{document.getElementById('rec-err').textContent='Código incorrecto o expirado.';}
-  }catch(e){document.getElementById('rec-err').textContent='Error. Intenta de nuevo.';}
-}
+window.sendRec=async function(){recVault=CV;recCode=Math.floor(100000+Math.random()*900000).toString();await set(ref(DB,'vault/recovery'),{code:recCode,vault:recVault,exp:Date.now()+(15*60*1000)});try{await sendPasswordResetEmail(AUTH,REC_EMAIL);}catch(e){}document.getElementById('rec-ok').style.display='block';document.getElementById('rec-code').value='';document.getElementById('rec-err').textContent='';goView('v-rec');}
+window.verCode=async function(){const entered=document.getElementById('rec-code').value.trim();try{const snap=await new Promise(res=>{onValue(ref(DB,'vault/recovery'),s=>{res(s.val());},{onlyOnce:true});});if(snap&&snap.code===entered&&Date.now()<snap.exp){await remove(ref(DB,'vault/recovery'));VL[recVault]=false;VA[recVault]=0;saveS();npVault=recVault;npFirst=null;npe='';nDots();document.getElementById('np-lbl').textContent='Ingresa tu nuevo PIN';document.getElementById('np-title').textContent='Nuevo PIN de bóveda';document.getElementById('nperr').textContent='';goView('v-newpin');}else{document.getElementById('rec-err').textContent='Código incorrecto o expirado.';}}catch(e){document.getElementById('rec-err').textContent='Error. Intenta de nuevo.';}}
 
 // ── NEW PIN ──
 let npe='';
-window.npp=function(d){
-  if(npe.length>=4)return;npe+=d;npuDots();
-  if(npe.length===4){
-    if(!npFirst){npFirst=npe;npe='';npuDots();document.getElementById('np-lbl').textContent='Confirma tu nuevo PIN';}
-    else if(npe===npFirst){
-      vPins[npVault]=npe;saveState();saveVaultFB(npVault,npe);
-      npe='';npFirst=null;npuDots();toast('✅ PIN cambiado');cv=npVault;openVault(npVault,vPins[npVault]);
-    }else{document.getElementById('nperr').textContent='PINs no coinciden.';npe='';npFirst=null;npuDots();document.getElementById('np-lbl').textContent='Ingresa tu nuevo PIN de bóveda';}
-  }
-}
-window.npd_=function(){if(npe.length>0){npe=npe.slice(0,-1);npuDots();}}
-function npuDots(){for(let i=0;i<4;i++)document.getElementById('npd'+i).className='dot'+(i<npe.length?' on':'');if(npe.length<4)document.getElementById('nperr').textContent='';}
+window.NP=function(d){if(npe.length>=4)return;npe+=d;nDots();if(npe.length===4){if(!npFirst){npFirst=npe;npe='';nDots();document.getElementById('np-lbl').textContent='Confirma tu nuevo PIN';}else if(npe===npFirst){VP[npVault]=npe;saveS();npe='';npFirst=null;nDots();toast('✅ PIN cambiado');CV=npVault;openVault(CV);}else{document.getElementById('nperr').textContent='PINs no coinciden.';npe='';npFirst=null;nDots();document.getElementById('np-lbl').textContent='Ingresa tu nuevo PIN';}}}
+window.NDel=function(){if(npe.length>0){npe=npe.slice(0,-1);nDots();}}
+function nDots(){for(let i=0;i<4;i++)document.getElementById('npd'+i).className='dot'+(i<npe.length?' on':'');if(npe.length<4)document.getElementById('nperr').textContent='';}
 
 // ── OPEN VAULT ──
-async function openVault(v,pin){
-  cv=v;const vi=VI[v];
-  document.getElementById('hico').textContent=vi.ico;
-  document.getElementById('hname').textContent=vi.name;
-  document.getElementById('hbdg').textContent=vi.name;
-  document.getElementById('hbdg').className='hdr-vault-bdg '+v;
-  setSS('syncing','Cargando...');
-  show('app');
-  if(fbUnsub)fbUnsub();
-  fbUnsub=onValue(ref(db,'vault/'+v),async snap=>{
-    const data=snap.val();
-    if(data&&data.encrypted){const d=await dec(data.encrypted,pin);if(d){vData[v]=d;try{localStorage.setItem('vc_'+v,JSON.stringify(d));}catch(e){}setSS('ok','Sincronizado ✓');renderAll();}
-    else{vData[v]=lCache(v);setSS('ok','Datos locales');renderAll();}}
-    else{vData[v]=lCache(v);setSS('ok',vData[v].length?'Datos locales':'Listo');renderAll();}
-  },()=>{vData[v]=lCache(v);setSS('offline','Sin conexión');renderAll();});
-}
+async function openVault(v){CV=v;const vi=VI[v];document.getElementById('hico').textContent=vi.i;document.getElementById('hname').textContent=vi.n;document.getElementById('hbdg').textContent=vi.n;document.getElementById('hbdg').className='hbdg '+v;setSS('sync','Cargando...');goView('v-app');if(fbUnsub)fbUnsub();fbUnsub=onValue(ref(DB,'vault/'+v),async snap=>{const data=snap.val();if(data&&data.encrypted){const d=await DEC(data.encrypted,VP[v]);if(d){VD[v]=d;try{localStorage.setItem('vc_'+v,JSON.stringify(d));}catch(e){}setSS('ok','Sincronizado ✓');renderAll();}else{VD[v]=lCache(v);setSS('ok','Datos locales');renderAll();}}else{VD[v]=lCache(v);setSS('ok',VD[v].length?'Datos locales':'Listo');renderAll();}},()=>{VD[v]=lCache(v);setSS('off','Sin conexión');renderAll();});}
 function lCache(v){try{const r=localStorage.getItem('vc_'+v);if(r)return JSON.parse(r);}catch(e){}return[];}
-async function saveVaultFB(v,pin){
-  const p=pin||vPins[v];setSS('syncing','Guardando...');
-  try{const e=await enc(vData[v],p);await set(ref(db,'vault/'+v),{encrypted:e,updatedAt:Date.now()});try{localStorage.setItem('vc_'+v,JSON.stringify(vData[v]));}catch(e){}setSS('ok','Sincronizado ✓');}
-  catch(e){setSS('offline','Error al sincronizar');}
-}
-window.closeVault=function(){if(fbUnsub){fbUnsub();fbUnsub=null;}cv=null;show('s-vaults');}
-function setSS(s,m){const b=document.getElementById('syncbar'),t=document.getElementById('synctxt'),d=document.getElementById('sdot');b.className='sync-bar'+(s==='syncing'?' syncing':s==='offline'?' offline':'');d.className='sdot'+(s==='syncing'?' pulse':'');t.textContent=m;}
+async function saveFB(v){setSS('sync','Guardando...');try{const e=await ENC(VD[v],VP[v]);await set(ref(DB,'vault/'+v),{encrypted:e,updatedAt:Date.now()});try{localStorage.setItem('vc_'+v,JSON.stringify(VD[v]));}catch(e){}setSS('ok','Sincronizado ✓');}catch(e){setSS('off','Error al sincronizar');}}
+window.closeVault=function(){if(fbUnsub){fbUnsub();fbUnsub=null;}CV=null;goView('v-vaults');}
 
 // ── TABS ──
 window.goTab=function(t){tab=t;['home','sec','cfg'].forEach(x=>document.getElementById('t-'+x).className='ntab'+(x===t?' on':''));document.getElementById('sarea').scrollTop=0;renderAll();}
+function renderAll(){renderAlt();renderCats();renderList();updCnt();}
+function updCnt(){const n=(VD[CV]||[]).length;document.getElementById('hcnt').textContent=n+' clave'+(n!==1?'s':'');}
 
-function renderAll(){renderAlt();renderCats();renderList();updBadge();}
-function updBadge(){const n=(vData[cv]||[]).length;document.getElementById('badge').textContent=n+' clave'+(n!==1?'s':'');}
+function renderAlt(){const b=document.getElementById('altbx');if(tab!=='home'){b.innerHTML='';return;}const ex=(VD[CV]||[]).filter(e=>dsin(e.updatedAt)>180);b.innerHTML=ex.length?`<div class="altbox" onclick="goTab('sec')"><div class="adot"></div><div class="atxt">⚠️ ${ex.length} clave${ex.length>1?'s':''} sin actualizar hace más de 6 meses</div><span style="color:var(--wn);font-size:16px">›</span></div>`:'';}
 
-function renderAlt(){const b=document.getElementById('altbx');if(tab!=='home'){b.innerHTML='';return;}const ex=(vData[cv]||[]).filter(e=>dsin(e.updatedAt)>180);b.innerHTML=ex.length?`<div class="alt" onclick="goTab('sec')"><div class="adot"></div><div class="atxt">⚠️ ${ex.length} clave${ex.length>1?'s':''} sin actualizar hace más de 6 meses</div><span style="color:var(--wn);font-size:18px">›</span></div>`:'';}
-
-function renderCats(){
-  const c=document.getElementById('cats');if(tab!=='home'){c.innerHTML='';return;}
-  const entries=vData[cv]||[];
-  let h=`<div class="chip${fcat==='all'?' on':''}" onclick="setCat('all')">Todas</div>`;
-  Object.entries(CATS).forEach(([k,v])=>{if(entries.some(e=>e.category===k))h+=`<div class="chip${fcat===k?' on':''}" onclick="setCat('${k}')"><span class="cdot" style="background:${v.color}"></span>${v.emoji} ${v.label}</div>`;});
-  c.innerHTML=h;
-}
+function renderCats(){const c=document.getElementById('cats');if(tab!=='home'){c.innerHTML='';return;}const entries=VD[CV]||[];let h=`<div class="chip${fcat==='all'?' on':''}" onclick="setCat('all')">Todas</div>`;Object.entries(CATS).forEach(([k,v])=>{if(entries.some(e=>e.category===k))h+=`<div class="chip${fcat===k?' on':''}" onclick="setCat('${k}')"><span class="cdot" style="background:${v.c}"></span>${v.e} ${v.l}</div>`;});c.innerHTML=h;}
 window.setCat=function(c){fcat=c;renderCats();renderList();}
 
-function renderList(){
-  const b=document.getElementById('lstbx');
-  if(tab==='sec'){renderSec(b);return;}if(tab==='cfg'){renderCfg(b);return;}
-  const entries=vData[cv]||[];
-  const q=(document.getElementById('sinput').value||'').toLowerCase();
-  let fl=entries.filter(e=>(fcat==='all'||e.category===fcat)&&(!q||e.name.toLowerCase().includes(q)||e.username.toLowerCase().includes(q)));
-  if(!fl.length){b.innerHTML=`<div class="empty"><div class="eico">🔑</div><div class="etit">Sin contraseñas</div><div class="esub">Toca ＋ para agregar</div></div>`;return;}
-  const grp={};fl.forEach(e=>{if(!grp[e.category])grp[e.category]=[];grp[e.category].push(e);});
-  let h='';
-  Object.entries(grp).forEach(([k,items])=>{
-    const ci=CATS[k];h+=`<div class="slbl">${ci.emoji} ${ci.label}</div>`;
-    items.forEach(it=>{
-      const d=dsin(it.updatedAt);let cls='ok',lbl='';
-      if(d>180){cls='dg';lbl=`⚠️ ${Math.floor(d/30)}m sin cambiar`;}
-      else if(d>120){cls='wn';lbl=`${Math.floor(d/30)} meses`;}
-      else{lbl=d<1?'Hoy':d===1?'Ayer':`Hace ${d}d`;}
-      h+=`<div class="pwc" onclick="openDetail('${it.id}')"><div class="pwico" style="background:${ci.color}18">${ci.emoji}</div><div class="pwinf"><div class="pwnm">${esc(it.name)}</div><div class="pwus">${esc(it.username)}</div><div class="pwmt"><span class="pwtag ${cls}">${lbl}</span></div></div><div class="pwchv">›</div></div>`;
-    });
-  });b.innerHTML=h;
-}
+function renderList(){const b=document.getElementById('lstbx');if(tab==='sec'){renderSec(b);return;}if(tab==='cfg'){renderCfg(b);return;}const entries=VD[CV]||[];const q=(document.getElementById('sinput').value||'').toLowerCase();let fl=entries.filter(e=>(fcat==='all'||e.category===fcat)&&(!q||e.name.toLowerCase().includes(q)||e.username.toLowerCase().includes(q)));if(!fl.length){b.innerHTML=`<div class="empty"><div class="eico">🔑</div><div class="etit">Sin contraseñas</div><div class="esub">Toca ＋ para agregar</div></div>`;return;}const grp={};fl.forEach(e=>{if(!grp[e.category])grp[e.category]=[];grp[e.category].push(e);});let h='';Object.entries(grp).forEach(([k,items])=>{const ci=CATS[k];h+=`<div class="slbl">${ci.e} ${ci.l}</div>`;items.forEach(it=>{const d=dsin(it.updatedAt);let cls='ok',lbl='';if(d>180){cls='dg';lbl=`⚠️ ${Math.floor(d/30)}m sin cambiar`;}else if(d>120){cls='wn';lbl=`${Math.floor(d/30)} meses`;}else{lbl=d<1?'Hoy':d===1?'Ayer':`Hace ${d}d`;}h+=`<div class="pwc" onclick="openDetail('${it.id}')"><div class="pwico" style="background:${ci.c}18">${ci.e}</div><div class="pwinf"><div class="pwnm">${esc(it.name)}</div><div class="pwus">${esc(it.username)}</div><div class="pwmt"><span class="pwtag ${cls}">${lbl}</span></div></div><div class="pwchv">›</div></div>`;});});b.innerHTML=h;}
 
-function renderSec(b){
-  const entries=vData[cv]||[];
-  const ex=entries.filter(e=>dsin(e.updatedAt)>180),wa=entries.filter(e=>{const d=dsin(e.updatedAt);return d>120&&d<=180;});
-  const sc=entries.length===0?100:Math.max(0,100-(ex.length*20)-(wa.length*5));
-  const col=sc>=80?'#22c68a':sc>=60?'#f5a623':'#ff4d6a';
-  let h=`<div class="slbl">Salud de seguridad</div><div class="scrd"><div class="scrng" style="color:${col}">${sc}<span style="font-size:22px;font-weight:400">%</span></div><div class="sclbl">${sc>=80?'Excelente':sc>=60?'Mejorable':'Crítico'}</div><div class="scbar"><div class="scfil" style="width:${sc}%;background:${col}"></div></div></div>`;
-  if(ex.length){h+=`<div class="slbl">⚠️ Requieren actualización</div>`;ex.forEach(e=>{const d=dsin(e.updatedAt);h+=`<div class="sitm" onclick="openDetail('${e.id}')"><div class="sico">🔑</div><div class="sinf"><div class="snm">${esc(e.name)}</div><div class="sds">Sin cambiar hace ${Math.floor(d/30)} meses</div></div><span class="sbdg bad">Actualizar</span></div>`;});}
-  h+=`<div class="slbl">Protecciones activas</div><div class="sitm"><div class="sico">🔐</div><div class="sinf"><div class="snm">PIN principal + PIN de bóveda</div><div class="sds">Doble capa de acceso</div></div><span class="sbdg ok">Activo</span></div><div class="sitm"><div class="sico">🛡️</div><div class="sinf"><div class="snm">Cifrado AES-256-GCM</div><div class="sds">Cifrado antes de salir del dispositivo</div></div><span class="sbdg ok">Activo</span></div><div class="sitm"><div class="sico">☁️</div><div class="sinf"><div class="snm">Sincronización cifrada</div><div class="sds">iPhone ↔ Computador en tiempo real</div></div><span class="sbdg ok">Activo</span></div><div class="sitm"><div class="sico">📧</div><div class="sinf"><div class="snm">Recuperación por email</div><div class="sds">Código al correo tras bloqueo</div></div><span class="sbdg ok">Activo</span></div><div class="sitm"><div class="sico">🧹</div><div class="sinf"><div class="snm">Bloqueo automático</div><div class="sds">Tras ${MAX_ATT} intentos fallidos</div></div><span class="sbdg ok">Activo</span></div>`;
-  b.innerHTML=h;
-}
+function renderSec(b){const entries=VD[CV]||[];const ex=entries.filter(e=>dsin(e.updatedAt)>180),wa=entries.filter(e=>{const d=dsin(e.updatedAt);return d>120&&d<=180;});const sc=entries.length===0?100:Math.max(0,100-(ex.length*20)-(wa.length*5));const col=sc>=80?'#22c68a':sc>=60?'#f5a623':'#ff4d6a';let h=`<div class="slbl">Salud de seguridad</div><div class="scrd"><div class="scrng" style="color:${col}">${sc}<span style="font-size:20px;font-weight:400">%</span></div><div class="sclbl">${sc>=80?'Excelente':sc>=60?'Mejorable':'Crítico'}</div><div class="scbar"><div class="scfil" style="width:${sc}%;background:${col}"></div></div></div>`;if(ex.length){h+=`<div class="slbl">⚠️ Requieren actualización</div>`;ex.forEach(e=>{const d=dsin(e.updatedAt);h+=`<div class="sitm" onclick="openDetail('${e.id}')"><div class="sico">🔑</div><div class="sinf"><div class="snm">${esc(e.name)}</div><div class="sds">Sin cambiar hace ${Math.floor(d/30)} meses</div></div><span class="sbdg bad">Actualizar</span></div>`;});}h+=`<div class="slbl">Protecciones activas</div><div class="sitm"><div class="sico">🔐</div><div class="sinf"><div class="snm">PIN principal + PIN de bóveda</div><div class="sds">Doble capa de acceso</div></div><span class="sbdg ok">Activo</span></div><div class="sitm"><div class="sico">🛡️</div><div class="sinf"><div class="snm">Cifrado AES-256-GCM</div><div class="sds">Datos cifrados antes de salir</div></div><span class="sbdg ok">Activo</span></div><div class="sitm"><div class="sico">☁️</div><div class="sinf"><div class="snm">Sincronización cifrada</div><div class="sds">iPhone ↔ Computador en tiempo real</div></div><span class="sbdg ok">Activo</span></div><div class="sitm"><div class="sico">📧</div><div class="sinf"><div class="snm">Recuperación por email</div><div class="sds">Código al correo tras bloqueo</div></div><span class="sbdg ok">Activo</span></div><div class="sitm"><div class="sico">🧹</div><div class="sinf"><div class="snm">Bloqueo automático</div><div class="sds">Tras ${MAX_ATT} intentos fallidos</div></div><span class="sbdg ok">Activo</span></div>`;b.innerHTML=h;}
 
-function renderCfg(b){
-  const vi=VI[cv];
-  b.innerHTML=`<div class="slbl">Seguridad</div>
-  <div class="sitm" onclick="om('m-pin')"><div class="sico">🔑</div><div class="sinf"><div class="snm">Cambiar PIN principal</div><div class="sds">PIN de entrada a la app</div></div><div class="pwchv">›</div></div>
-  <div class="sitm" onclick="changeVaultPin()"><div class="sico">${vi.ico}</div><div class="sinf"><div class="snm">Cambiar PIN bóveda ${vi.name}</div><div class="sds">PIN exclusivo de esta bóveda</div></div><div class="pwchv">›</div></div>
-  <div class="slbl">Sincronización</div>
-  <div class="sitm"><div class="sico">☁️</div><div class="sinf"><div class="snm">Firebase Realtime DB</div><div class="sds">Sincronización en tiempo real activa</div></div><span class="sbdg ok">Activo</span></div>
-  <div class="slbl">Datos</div>
-  <div class="sitm" onclick="wipeVault()"><div class="sico">🗑️</div><div class="sinf"><div class="snm" style="color:var(--dg)">Borrar bóveda ${vi.name}</div><div class="sds">Elimina local y en la nube</div></div></div>
-  <div class="sinf2">🔒 <strong>Doble cifrado:</strong> PIN principal + PIN de bóveda independiente. Cifrado AES-256-GCM. Firebase solo recibe datos ilegibles.</div>`;
-}
+function renderCfg(b){const vi=VI[CV];b.innerHTML=`<div class="slbl">Seguridad</div><div class="sitm" onclick="OM('m-pin')"><div class="sico">🔑</div><div class="sinf"><div class="snm">Cambiar PIN principal</div><div class="sds">PIN de entrada a la app</div></div><div class="pwchv">›</div></div><div class="sitm" onclick="chVaultPin()"><div class="sico">${vi.i}</div><div class="sinf"><div class="snm">Cambiar PIN bóveda ${vi.n}</div><div class="sds">PIN exclusivo de esta bóveda</div></div><div class="pwchv">›</div></div><div class="slbl">Sincronización</div><div class="sitm"><div class="sico">☁️</div><div class="sinf"><div class="snm">Firebase Realtime DB</div><div class="sds">Sincronización en tiempo real</div></div><span class="sbdg ok">Activo</span></div><div class="slbl">Datos</div><div class="sitm" onclick="wipeV()"><div class="sico">🗑️</div><div class="sinf"><div class="snm" style="color:var(--dg)">Borrar bóveda ${vi.n}</div><div class="sds">Elimina local y en la nube</div></div></div><div class="sinf2">🔒 <strong>Doble cifrado:</strong> PIN principal + PIN de bóveda. Cifrado AES-256-GCM. Firebase solo recibe datos ilegibles.</div>`;}
+window.chVaultPin=function(){npVault=CV;npFirst=null;npe='';nDots();document.getElementById('np-lbl').textContent='Ingresa tu nuevo PIN';document.getElementById('np-title').textContent='Cambiar PIN bóveda';document.getElementById('nperr').textContent='';goView('v-newpin');}
 
-window.changeVaultPin=function(){npVault=cv;npFirst=null;npe='';npuDots();document.getElementById('np-lbl').textContent='Ingresa tu nuevo PIN de bóveda';document.getElementById('np-title').textContent='Cambiar PIN bóveda';document.getElementById('nperr').textContent='';show('s-newpin');}
-
-window.openDetail=function(id){
-  const entries=vData[cv]||[];const e=entries.find(x=>x.id===id);if(!e)return;
-  const ci=CATS[e.category];const d=dsin(e.updatedAt);
-  let ai='',ac='var(--ok)';
-  if(d>180){ai=`⚠️ Sin actualizar hace ${Math.floor(d/30)} meses`;ac='var(--dg)';}
-  else if(d>120){ai=`Actualizada hace ${Math.floor(d/30)} meses`;ac='var(--wn)';}
-  else{ai=`Actualizada hace ${d<1?'hoy':d+' día'+(d!==1?'s':'')}`;}
-  const st=strn(e.password);pviz=false;
-  document.getElementById('m-dtit').textContent=e.name;
-  document.getElementById('m-dbody').innerHTML=`<div class="dico" style="background:${ci.color}18">${ci.emoji}</div><div class="dnm">${esc(e.name)}</div><div class="dcat">${ci.label}</div><div class="dage" style="color:${ac}">${ai}</div><div class="dfld"><div class="dlbl">Usuario / Email</div><div class="drow"><div class="dval" style="letter-spacing:normal">${esc(e.username)}</div><button class="dbtn" onclick="cp('${ea(e.username)}')">📋</button></div></div><div class="dfld"><div class="dlbl">Contraseña</div><div class="drow"><div class="dval blur" id="pv">${esc(e.password)}</div><button class="dbtn" onclick="tgPv()" id="eyb">👁️</button><button class="dbtn" onclick="cp('${ea(e.password)}')">📋</button></div><div class="sbrw"><div class="sbr ${st.c}"></div><span style="font-size:12px;color:var(--tx2)">${st.l}</span></div></div>${e.notes?`<div class="dfld"><div class="dlbl">Notas</div><div class="drow"><div class="dval" style="letter-spacing:normal">${esc(e.notes)}</div></div></div>`:''}<div class="dacts"><button class="abtn pri" onclick="openEdit('${e.id}')">✏️ Editar</button><button class="abtn del" onclick="cDel('${e.id}')">🗑️ Eliminar</button></div>`;
-  om('m-det');
-}
+// ── DETAIL ──
+window.openDetail=function(id){const entries=VD[CV]||[];const e=entries.find(x=>x.id===id);if(!e)return;const ci=CATS[e.category];const d=dsin(e.updatedAt);let ai='',ac='var(--ok)';if(d>180){ai=`⚠️ Sin actualizar hace ${Math.floor(d/30)} meses`;ac='var(--dg)';}else if(d>120){ai=`Actualizada hace ${Math.floor(d/30)} meses`;ac='var(--wn)';}else{ai=`Actualizada hace ${d<1?'hoy':d+' día'+(d!==1?'s':'')}`;}const st=strn(e.password);pviz=false;document.getElementById('m-dtit').textContent=e.name;document.getElementById('m-dbody').innerHTML=`<div class="dico" style="background:${ci.c}18">${ci.e}</div><div class="dnm">${esc(e.name)}</div><div class="dcat">${ci.l}</div><div class="dage" style="color:${ac}">${ai}</div><div class="dfld"><div class="dlbl">Usuario / Email</div><div class="drow"><div class="dval" style="letter-spacing:normal">${esc(e.username)}</div><button class="dbtn" onclick="CP('${ea(e.username)}')">📋</button></div></div><div class="dfld"><div class="dlbl">Contraseña</div><div class="drow"><div class="dval blur" id="pv">${esc(e.password)}</div><button class="dbtn" onclick="tgPv()" id="eyb">👁️</button><button class="dbtn" onclick="CP('${ea(e.password)}')">📋</button></div><div class="sbrw"><div class="sbr ${st.c}"></div><span style="font-size:12px;color:var(--tx2)">${st.l}</span></div></div>${e.notes?`<div class="dfld"><div class="dlbl">Notas</div><div class="drow"><div class="dval" style="letter-spacing:normal">${esc(e.notes)}</div></div></div>`:''}<div class="dacts"><button class="abtn pri" onclick="openEdit('${e.id}')">✏️ Editar</button><button class="abtn del" onclick="cDel('${e.id}')">🗑️ Eliminar</button></div>`;OM('m-det');}
 window.tgPv=function(){pviz=!pviz;document.getElementById('pv').className='dval'+(pviz?'':' blur');document.getElementById('eyb').textContent=pviz?'🙈':'👁️';}
-window.cp=function(t){try{navigator.clipboard&&navigator.clipboard.writeText(t);}catch(e){}toast('✓ Copiado');}
+window.CP=function(t){try{navigator.clipboard&&navigator.clipboard.writeText(t);}catch(e){}toast('✓ Copiado');}
 
-window.openAdd=function(){document.getElementById('m-ftit').textContent='Nueva clave';document.getElementById('fid').value='';['fn','fu','fp','fnt'].forEach(id=>document.getElementById(id).value='');document.getElementById('fc').value='bank';document.getElementById('stri').innerHTML='';om('m-form');}
-window.openEdit=function(id){const entries=vData[cv]||[];const e=entries.find(x=>x.id===id);if(!e)return;cm('m-det');document.getElementById('m-ftit').textContent='Editar clave';document.getElementById('fid').value=id;document.getElementById('fn').value=e.name;document.getElementById('fu').value=e.username;document.getElementById('fp').value=e.password;document.getElementById('fnt').value=e.notes||'';document.getElementById('fc').value=e.category;updStr();setTimeout(()=>om('m-form'),280);}
+// ── FORM ──
+window.openAdd=function(){document.getElementById('m-ftit').textContent='Nueva clave';document.getElementById('fid').value='';['fn','fu','fp','fnt'].forEach(id=>document.getElementById(id).value='');document.getElementById('fc').value='bank';document.getElementById('stri').innerHTML='';OM('m-form');}
+window.openEdit=function(id){const entries=VD[CV]||[];const e=entries.find(x=>x.id===id);if(!e)return;CM('m-det');document.getElementById('m-ftit').textContent='Editar clave';document.getElementById('fid').value=id;document.getElementById('fn').value=e.name;document.getElementById('fu').value=e.username;document.getElementById('fp').value=e.password;document.getElementById('fnt').value=e.notes||'';document.getElementById('fc').value=e.category;updStr();setTimeout(()=>OM('m-form'),280);}
 window.updStr=function(){const pw=document.getElementById('fp').value;const c=document.getElementById('stri');if(!pw){c.innerHTML='';return;}const s=strn(pw);c.innerHTML=`<div class="sbrw" style="margin-top:8px"><div class="sbr ${s.c}"></div><span style="font-size:12px;color:var(--tx2)">${s.l}</span></div>`;}
 function strn(pw){if(!pw)return{c:'weak',l:'—'};let sc=0;if(pw.length>=8)sc++;if(pw.length>=12)sc++;if(/[A-Z]/.test(pw))sc++;if(/[0-9]/.test(pw))sc++;if(/[^A-Za-z0-9]/.test(pw))sc++;if(sc>=4)return{c:'strong',l:'💪 Fuerte'};if(sc>=2)return{c:'medium',l:'🟡 Media'};return{c:'weak',l:'⚠️ Débil'};}
 window.genPw=function(){const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*()-_+=';const a=new Uint8Array(16);crypto.getRandomValues(a);let pw='';a.forEach(b=>pw+=ch[b%ch.length]);const i=document.getElementById('fp');i.value=pw;i.type='text';updStr();setTimeout(()=>i.type='password',4000);}
-window.saveEntry=async function(){
-  const name=document.getElementById('fn').value.trim(),user=document.getElementById('fu').value.trim(),pass=document.getElementById('fp').value,catv=document.getElementById('fc').value,note=document.getElementById('fnt').value.trim(),eid=document.getElementById('fid').value;
-  if(!name||!user||!pass){alert('Completa nombre, usuario y contraseña.');return;}
-  const entries=vData[cv];
-  if(eid){const i=entries.findIndex(e=>e.id===eid);if(i>=0)entries[i]={...entries[i],name,username:user,password:pass,category:catv,notes:note,updatedAt:new Date().toISOString()};}
-  else entries.push({id:uid(),name,username:user,password:pass,category:catv,notes:note,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
-  cm('m-form');renderAll();await saveVaultFB(cv);
-}
-window.cDel=function(id){delId=id;document.getElementById('covl').className='covl open';}
-window.cclose=function(){delId=null;document.getElementById('covl').className='covl';}
-document.getElementById('cok').onclick=async function(){if(!delId)return;vData[cv]=vData[cv].filter(e=>e.id!==delId);cclose();cm('m-det');renderAll();await saveVaultFB(cv);}
-window.wipeVault=async function(){if(confirm(`¿Borrar TODA la bóveda ${VI[cv].name}?`)){vData[cv]=[];await set(ref(db,'vault/'+cv),null);localStorage.removeItem('vc_'+cv);renderAll();}}
-window.chPin=async function(){const cur=document.getElementById('pc').value,nw=document.getElementById('pn').value,cf=document.getElementById('pk').value,err=document.getElementById('perr2');if(cur!==mainPin){err.textContent='PIN actual incorrecto.';return;}if(!/^\d{4}$/.test(nw)){err.textContent='Debe ser 4 dígitos.';return;}if(nw!==cf){err.textContent='No coinciden.';return;}mainPin=nw;saveState();err.textContent='';cm('m-pin');toast('✅ PIN principal cambiado.');}
-window.om=function(id){document.getElementById(id).className='mov open';pviz=false;}
-window.cm=function(id){document.getElementById(id).className='mov';}
-document.querySelectorAll('.mov').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)cm(el.id);}));
+window.saveEntry=async function(){const name=document.getElementById('fn').value.trim(),user=document.getElementById('fu').value.trim(),pass=document.getElementById('fp').value,catv=document.getElementById('fc').value,note=document.getElementById('fnt').value.trim(),eid=document.getElementById('fid').value;if(!name||!user||!pass){alert('Completa nombre, usuario y contraseña.');return;}const entries=VD[CV];if(eid){const i=entries.findIndex(e=>e.id===eid);if(i>=0)entries[i]={...entries[i],name,username:user,password:pass,category:catv,notes:note,updatedAt:new Date().toISOString()};}else entries.push({id:uid(),name,username:user,password:pass,category:catv,notes:note,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});CM('m-form');renderAll();await saveFB(CV);}
+
+// ── DELETE ──
+window.cDel=function(id){delId=id;document.getElementById('covl').className='covl on';}
+window.CC=function(){delId=null;document.getElementById('covl').className='covl';}
+document.getElementById('cok').onclick=async function(){if(!delId)return;VD[CV]=VD[CV].filter(e=>e.id!==delId);CC();CM('m-det');renderAll();await saveFB(CV);}
+window.wipeV=async function(){if(confirm(`¿Borrar TODA la bóveda ${VI[CV].n}?`)){VD[CV]=[];await set(ref(DB,'vault/'+CV),null);localStorage.removeItem('vc_'+CV);renderAll();}}
+
+// ── CHANGE MAIN PIN ──
+window.chPin=async function(){const cur=document.getElementById('pc').value,nw=document.getElementById('pn').value,cf=document.getElementById('pk').value,err=document.getElementById('perr2');if(cur!==MP){err.textContent='PIN actual incorrecto.';return;}if(!/^\d{4}$/.test(nw)){err.textContent='Debe ser 4 dígitos.';return;}if(nw!==cf){err.textContent='No coinciden.';return;}MP=nw;saveS();err.textContent='';CM('m-pin');toast('✅ PIN principal cambiado.');}
+
+// ── MODALS ──
+window.OM=function(id){document.getElementById(id).className='mov on';pviz=false;}
+window.CM=function(id){document.getElementById(id).className='mov';}
+document.querySelectorAll('.mov').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)CM(el.id);}));
 </script>
-</div><!-- #root -->
-  <div class="phone-home"><div class="home-bar"></div></div>
-</div><!-- #phone-shell -->
 </body>
 </html>
