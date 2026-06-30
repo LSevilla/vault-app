@@ -436,6 +436,57 @@ function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function ea(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
 function toast(m){const el=document.getElementById('toast');el.textContent=m;el.className='toast on';setTimeout(()=>el.className='toast',2200);}
+
+// Copy that works on iOS Safari, Android and Desktop
+window.CP=function(t){
+  // Method 1: Modern clipboard API (Chrome, Firefox, desktop Safari)
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>{
+      toast('✓ Copiado — listo para pegar');
+    }).catch(()=>cpFallback(t));
+    return;
+  }
+  cpFallback(t);
+}
+
+function cpFallback(t){
+  // Method 2: execCommand (iOS Safari, older browsers)
+  const ta=document.createElement('textarea');
+  ta.value=t;
+  ta.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0,99999);
+  try{
+    document.execCommand('copy');
+    toast('✓ Copiado — listo para pegar');
+  }catch(e){
+    // Method 3: Show value so user can copy manually
+    const val=ta.value;
+    document.body.removeChild(ta);
+    showCopyDialog(val);
+    return;
+  }
+  document.body.removeChild(ta);
+}
+
+function showCopyDialog(text){
+  // Create a visible input the user can manually copy from
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML=`<div style="background:#13131a;border-radius:16px;padding:20px;width:100%;max-width:320px;text-align:center;">
+    <div style="font-size:14px;color:#9494aa;margin-bottom:12px;">Mantén presionado para copiar:</div>
+    <input id="copy-inp" value="${text.replace(/"/g,'&quot;')}" readonly style="width:100%;background:#1a1a24;border:1px solid #6c63ff;border-radius:8px;padding:12px;color:#f0f0f8;font-size:13px;font-family:monospace;text-align:center;outline:none;" onclick="this.select();this.setSelectionRange(0,99999);">
+    <div style="font-size:12px;color:#5a5a72;margin-top:10px;">Toca el texto → Seleccionar todo → Copiar</div>
+    <button onclick="this.closest('div').parentElement.remove()" style="margin-top:14px;background:#6c63ff;border:none;color:white;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">Cerrar</button>
+  </div>`;
+  document.getElementById('screen').appendChild(overlay);
+  setTimeout(()=>{
+    const inp=document.getElementById('copy-inp');
+    if(inp){inp.focus();inp.select();inp.setSelectionRange(0,99999);}
+  },100);
+}
 function setSS(s,m){const b=document.getElementById('sbar'),t=document.getElementById('stxt'),d=document.getElementById('sdot');b.className='syncbar'+(s==='sync'?' sync':s==='off'?' off':'');d.className='sdot'+(s==='sync'?' pulse':'');t.textContent=m;}
 
 // ── LOCK PIN ──
@@ -542,7 +593,6 @@ window.chVaultPin=function(){npVault=CV;npFirst=null;npe='';nDots();document.get
 // ── DETAIL ──
 window.openDetail=function(id){const entries=VD[CV]||[];const e=entries.find(x=>x.id===id);if(!e)return;const ci=CATS[e.category];const d=dsin(e.updatedAt);let ai='',ac='var(--ok)';if(d>180){ai=`⚠️ Sin actualizar hace ${Math.floor(d/30)} meses`;ac='var(--dg)';}else if(d>120){ai=`Actualizada hace ${Math.floor(d/30)} meses`;ac='var(--wn)';}else{ai=`Actualizada hace ${d<1?'hoy':d+' día'+(d!==1?'s':'')}`;}const st=strn(e.password);pviz=false;document.getElementById('m-dtit').textContent=e.name;document.getElementById('m-dbody').innerHTML=`<div class="dico" style="background:${ci.c}18">${ci.e}</div><div class="dnm">${esc(e.name)}</div><div class="dcat">${ci.l}</div><div class="dage" style="color:${ac}">${ai}</div><div class="dfld"><div class="dlbl">Usuario / Email</div><div class="drow"><div class="dval" style="letter-spacing:normal">${esc(e.username)}</div><button class="dbtn" onclick="CP('${ea(e.username)}')">📋</button></div></div><div class="dfld"><div class="dlbl">Contraseña</div><div class="drow"><div class="dval blur" id="pv">${esc(e.password)}</div><button class="dbtn" onclick="tgPv()" id="eyb">👁️</button><button class="dbtn" onclick="CP('${ea(e.password)}')">📋</button></div><div class="sbrw"><div class="sbr ${st.c}"></div><span style="font-size:12px;color:var(--tx2)">${st.l}</span></div></div>${e.notes?`<div class="dfld"><div class="dlbl">Notas</div><div class="drow"><div class="dval" style="letter-spacing:normal">${esc(e.notes)}</div></div></div>`:''}<div class="dacts"><button class="abtn pri" onclick="openEdit('${e.id}')">✏️ Editar</button><button class="abtn del" onclick="cDel('${e.id}')">🗑️ Eliminar</button></div>`;OM('m-det');}
 window.tgPv=function(){pviz=!pviz;document.getElementById('pv').className='dval'+(pviz?'':' blur');document.getElementById('eyb').textContent=pviz?'🙈':'👁️';}
-window.CP=function(t){try{navigator.clipboard&&navigator.clipboard.writeText(t);}catch(e){}toast('✓ Copiado');}
 
 // ── FORM ──
 window.openAdd=function(){document.getElementById('m-ftit').textContent='Nueva clave';document.getElementById('fid').value='';['fn','fu','fp','fnt'].forEach(id=>document.getElementById(id).value='');document.getElementById('fc').value='bank';document.getElementById('stri').innerHTML='';OM('m-form');}
